@@ -19,7 +19,9 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
+        launchOptions: {
+          executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
+        },
       },
     },
   ],
