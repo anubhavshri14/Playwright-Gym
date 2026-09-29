@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadow DOM — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 08</p>
+    <h1>Shadow DOM</h1>
+    <p class="lede">
+      Playwright pierces open shadow roots on its own, so most of this page is easier than it looks.
+      The two that are genuinely hard: a <span class="code">closed</span> root, which nothing can
+      reach from outside, and component state that lives on the element object with no DOM trace.
+    </p>
+
+    <div class="card" style="margin-bottom:30px">
+      <span class="card__label">What actually changes</span>
+      <div class="grid grid--2 tiny">
+        <div>
+          <p style="margin:0 0 8px"><strong>Still works:</strong> <span class="code">locator()</span>, <span class="code">getByRole</span>, <span class="code">getByTestId</span>, chained locators, and text matching — all cross open shadow boundaries.</p>
+        </div>
+        <div>
+          <p style="margin:0 0 8px"><strong>Stops working:</strong> CSS combinators that span the boundary (<span class="code">div &gt; input</span> where the boundary sits between them), <span class="code">document.querySelector</span> from <span class="code">evaluate</span>, XPath, and anything targeting a closed root.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Open roots, three of them</h2></div>
+      <p class="hint">
+        Three instances of the same component. Each has its own shadow tree containing an input with
+        the same test id, so you must scope to the host element first.
+      </p>
+
+      <div class="grid grid--3">
+        <gym-panel label="Primary site" code="IN-W1"></gym-panel>
+        <gym-panel label="Backup site" code="FR-W3"></gym-panel>
+        <gym-panel label="Cold storage" code="JP-W2"></gym-panel>
+      </div>
+      <div class="out" data-testid="panel-relay" style="margin-top:12px"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Roots inside roots <span class="chip chip--trap">3 boundaries</span></h2></div>
+      <p class="hint">
+        Host → shadow → host → shadow → host → shadow → the input. A single chained locator still
+        resolves it, which is the point of the exercise: try it with a raw
+        <span class="code">document.querySelector</span> in <span class="code">evaluate</span> and watch it fail.
+      </p>
+
+      <div class="card">
+        <gym-nest depth="2"></gym-nest>
+        <div class="out" data-testid="nest-out" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Closed root <span class="chip chip--trap">unreachable</span></h2></div>
+      <p class="hint">
+        <span class="code">attachShadow({ mode: 'closed' })</span> keeps no public reference to the
+        root. Locators find the host and stop. The component exposes a public API instead — which is
+        exactly how you should test one: through the interface the component actually offers.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">The sealed component</span>
+          <gym-sealed></gym-sealed>
+          <p class="tiny muted" style="margin:12px 0 0">
+            <span class="code">page.getByTestId('sealed-input')</span> → 0 elements.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Its public API</span>
+          <div class="out" style="margin:0 0 10px">const host = page.locator('gym-sealed');
+await host.evaluate(el =&gt; el.setCode('OVR-99'));
+await host.evaluate(el =&gt; el.getCode());</div>
+          <div class="btnrow" style="margin-top:0">
+            <button class="btn btn--ghost btn--sm" data-testid="sealed-probe">Try to reach inside</button>
+            <button class="btn btn--ghost btn--sm" data-testid="sealed-api">Use the public API</button>
+          </div>
+          <div class="out" data-testid="sealed-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Slots and parts</h2></div>
+      <p class="hint">
+        Slotted children stay in the light DOM — they are yours, styled by the page, and trivially
+        locatable. <span class="code">::part()</span> exposes named internals for styling without
+        opening the whole tree.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Slotted light DOM</span>
+          <gym-card data-testid="slot-card">
+            <span slot="title">Release 4471</span>
+            <p slot="body" class="tiny" style="margin:0">Canary at 5% since 14:02. Error rate flat, p99 up 4 ms.</p>
+            <button slot="action" class="btn btn--sm" data-testid="slotted-button">Promote to 100%</button>
+          </gym-card>
+          <p class="tiny muted" style="margin:10px 0 0">
+            That button lives in this document, not the shadow tree — inspect it and you'll find it as
+            a direct child of <span class="code">gym-card</span>.
+          </p>
+          <div class="out" data-testid="slot-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Exposed parts</span>
+          <gym-meter value="72" data-testid="meter"></gym-meter>
+          <p class="tiny muted" style="margin:10px 0 0">
+            The bar exposes <span class="code">part="track"</span> and <span class="code">part="fill"</span>.
+            Page CSS can reach them with <span class="code">gym-meter::part(fill)</span>; locators reach
+            them anyway, because the root is open.
+          </p>
+          <div class="btnrow">
+            <button class="btn btn--ghost btn--sm" data-testid="meter-up">+12</button>
+            <button class="btn btn--ghost btn--sm" data-testid="meter-read">Read internals</button>
+          </div>
+          <div class="out" data-testid="meter-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Shadow inside a frame</h2></div>
+      <p class="hint">Frame boundary first, then shadow boundary. <span class="code">frameLocator</span> handles the first; the locator handles the second on its own.</p>
+
+      <div class="card">
+        <p class="frame-note">iframe#shadow-frame → gym-panel → #shadow-root → input</p>
+        <iframe src="../frames/shadow-frame.html" id="shadow-frame" name="shadowFrame" height="200" title="Shadow inside a frame"></iframe>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 06</span><h2>Component state on the object</h2></div>
+      <p class="hint">
+        <span class="code">gym-panel</span> exposes a <span class="code">value</span> getter/setter, a
+        <span class="code">reset()</span> method and a <span class="code">history</span> array. None of
+        it is reflected to an attribute. Reach it with <span class="code">evaluate</span>.
+      </p>
+
+      <div class="card">
+        <div class="out" style="margin:0 0 12px">const panel = page.locator('gym-panel').first();
+
+await panel.evaluate(el =&gt; el.value = 'PRIMARY-01');
+await panel.evaluate(el =&gt; el.history);
+await panel.evaluate(el =&gt; el.reset());</div>
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn btn--ghost btn--sm" data-testid="probe-set">Set value on panel 1</button>
+          <button class="btn btn--ghost btn--sm" data-testid="probe-history">Read history</button>
+          <button class="btn btn--ghost btn--sm" data-testid="probe-reset">Reset all panels</button>
+        </div>
+        <div class="out" data-testid="probe-out"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script src="../assets/components.js"></script>
+<script>
+(function () {
+  const $ = function (s) { return document.querySelector(s); };
+  const $$ = function (s) { return Array.from(document.querySelectorAll(s)); };
+
+  document.addEventListener('gym-panel-submit', function (e) {
+    Gym.out('[data-testid="panel-relay"]', e.detail.code + ' → "' + e.detail.value + '"');
+    Gym.log('shadow', e.detail.code + ' submitted');
+  });
+
+  document.addEventListener('gym-nest-submit', function (e) {
+    Gym.out('[data-testid="nest-out"]', 'value from depth ' + e.detail.depth + ': "' + e.detail.value + '"');
+    Gym.log('shadow', 'nested submit at depth ' + e.detail.depth);
+  });
+
+  /* closed root */
+  $('[data-testid="sealed-probe"]').addEventListener('click', function () {
+    const host = document.querySelector('gym-sealed');
+    Gym.out('[data-testid="sealed-out"]',
+      'host.shadowRoot = ' + host.shadowRoot + '\n' +
+      'document.querySelectorAll("[data-testid=\'sealed-input\']").length = ' +
+        document.querySelectorAll('[data-testid="sealed-input"]').length +
+      '\nThe root exists, but nothing outside the component holds a reference to it.');
+  });
+
+  $('[data-testid="sealed-api"]').addEventListener('click', function () {
+    const host = document.querySelector('gym-sealed');
+    host.setCode('OVR-' + Math.floor(Math.random() * 900 + 100));
+    Gym.out('[data-testid="sealed-out"]', 'host.getCode() → "' + host.getCode() + '"');
+    Gym.log('shadow', 'sealed component driven through its API');
+  });
+
+  /* slots */
+  $('[data-testid="slotted-button"]').addEventListener('click', function () {
+    Gym.out('[data-testid="slot-out"]', 'slotted button clicked — its parent is <' +
+      this.parentElement.tagName.toLowerCase() + '>, and it is in the light DOM');
+  });
+
+  /* meter */
+  $('[data-testid="meter-up"]').addEventListener('click', function () {
+    const m = $('gym-meter');
+    m.setAttribute('value', Math.min(100, +m.getAttribute('value') + 12));
+  });
+  $('[data-testid="meter-read"]').addEventListener('click', function () {
+    const m = $('gym-meter');
+    const fill = m.shadowRoot.querySelector('[part="fill"]');
+    Gym.out('[data-testid="meter-out"]',
+      'attribute value = ' + m.getAttribute('value') +
+      '\nshadow fill width = ' + fill.style.width +
+      '\nshadow label text = "' + m.shadowRoot.querySelector('[data-testid="meter-label"]').textContent + '"');
+  });
+
+  /* object state probes */
+  $('[data-testid="probe-set"]').addEventListener('click', function () {
+    const p = $$('gym-panel')[0];
+    p.value = 'PRIMARY-01';
+    Gym.out('[data-testid="probe-out"]', 'panel 1 .value = "' + p.value + '" (no attribute was written — check the element in devtools)');
+  });
+  $('[data-testid="probe-history"]').addEventListener('click', function () {
+    const p = $$('gym-panel')[0];
+    Gym.out('[data-testid="probe-out"]', 'panel 1 .history = ' + JSON.stringify(p.history));
+  });
+  $('[data-testid="probe-reset"]').addEventListener('click', function () {
+    $$('gym-panel').forEach(function (p) { p.reset(); });
+    Gym.out('[data-testid="probe-out"]', 'all panels reset via el.reset()');
+    Gym.log('shadow', 'panels reset');
+  });
+})();
+</script>
+</body>
+</html>

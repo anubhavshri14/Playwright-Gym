@@ -1,0 +1,14 @@
+{
+  "service": "ingest-gateway",
+  "version": "4.7.1",
+  "regions": ["ap-south-1", "eu-central-1", "us-east-2"],
+  "limits": { "burst": 120, "sustained": 40, "unit": "req/s" },
+  "retries": { "enabled": true, "max": 3, "backoffMs": 250 },
+  "deadLetterQueue": "dlq-ingest",
+  "featureFlags": {
+    "shadowRead": true,
+    "asyncCommit": false,
+    "strictSchema": true
+  },
+  "fixtureToken": "7f3a-91cd-4e02-bb18"
+}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locator Gym — Playwright practice rig</title>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-root="">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Local practice rig — no network required</p>
+    <h1>Fifteen rooms of deliberately<br>difficult DOM.</h1>
+    <p class="lede">
+      Rooms 01–08 break lazy selectors. Rooms 09–14 break production suites: cookie walls,
+      virtualised lists, route timing, storageState, design-system portals, and a
+      cross-origin card widget. Turn on <strong>X-ray test IDs</strong> to see the hooks.
+      Turn on <strong>Hide test IDs</strong> when you want to practise without them.
+    </p>
+
+    <section class="section">
+      <div class="section__head">
+        <span class="section__num">§ 01</span>
+        <h2>Modules</h2>
+      </div>
+
+      <div class="bench">
+        <a class="bench__item" href="pages/controls.html" data-testid="bench-controls">
+          <div class="bench__no">01</div>
+          <div class="bench__title">Form controls</div>
+          <p class="bench__desc">Every input type, plus multi-selects, custom dropdowns, sliders, and controls that only enable after a delay.</p>
+          <div class="bench__tags">
+            <span class="chip">fill</span><span class="chip">check</span>
+            <span class="chip">selectOption</span><span class="chip chip--time">waits</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/tables.html" data-testid="bench-tables">
+          <div class="bench__no">02</div>
+          <div class="bench__title">Dynamic tables</div>
+          <p class="bench__desc">Sort, paginate, filter, inline-edit. One table rewrites its own cells every second while you read it.</p>
+          <div class="bench__tags">
+            <span class="chip">nth</span><span class="chip">filter</span>
+            <span class="chip chip--trap">live cells</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/accordions.html" data-testid="bench-accordions">
+          <div class="bench__no">03</div>
+          <div class="bench__title">Accordions</div>
+          <p class="bench__desc">Native details, ARIA disclosure, animated max-height, exclusive groups, and accordions nested three levels down.</p>
+          <div class="bench__tags">
+            <span class="chip">aria-expanded</span><span class="chip chip--time">animation</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/calendars.html" data-testid="bench-calendars">
+          <div class="bench__no">04</div>
+          <div class="bench__title">Calendars</div>
+          <p class="bench__desc">Six pickers: native date inputs, a month/year drill-down, a two-panel range picker, blocked dates, and one inside a frame.</p>
+          <div class="bench__tags">
+            <span class="chip">date</span><span class="chip">range</span>
+            <span class="chip chip--trap">read-only input</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/files.html" data-testid="bench-files">
+          <div class="bench__no">05</div>
+          <div class="bench__title">Upload &amp; download</div>
+          <p class="bench__desc">Hidden inputs, drag-and-drop zones, multi-file, type validation, blob downloads, and a link that only appears after work finishes.</p>
+          <div class="bench__tags">
+            <span class="chip">setInputFiles</span><span class="chip">waitForEvent</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/frames.html" data-testid="bench-frames">
+          <div class="bench__no">06</div>
+          <div class="bench__title">Nested iframes</div>
+          <p class="bench__desc">Four levels deep, siblings that share a name, a srcdoc frame, a frame injected after load, and a frame hidden in a shadow root.</p>
+          <div class="bench__tags">
+            <span class="chip">frameLocator</span><span class="chip chip--trap">4 levels</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/dom.html" data-testid="bench-dom">
+          <div class="bench__no">07</div>
+          <div class="bench__title">Hostile DOM</div>
+          <p class="bench__desc">Ids that change on reload, duplicate ids, split text nodes, invisible overlays, detached nodes, and canvas targets.</p>
+          <div class="bench__tags">
+            <span class="chip chip--trap">random ids</span><span class="chip chip--trap">intercepted click</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/shadow.html" data-testid="bench-shadow">
+          <div class="bench__no">08</div>
+          <div class="bench__title">Shadow DOM</div>
+          <p class="bench__desc">Open roots, roots inside roots, a closed root you cannot pierce, slotted light DOM, and properties that live only on the JS object.</p>
+          <div class="bench__tags">
+            <span class="chip">web components</span><span class="chip chip--trap">closed root</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/overlays.html" data-testid="bench-overlays">
+          <div class="bench__no">09</div>
+          <div class="bench__title">Overlays &amp; chrome</div>
+          <p class="bench__desc">Cookie banner, sticky Save, portal dialog with a third Save, toast stack, inert page.</p>
+          <div class="bench__tags">
+            <span class="chip">getByRole dialog</span><span class="chip chip--trap">name collision</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/lists.html" data-testid="bench-lists">
+          <div class="bench__no">10</div>
+          <div class="bench__title">Lists that lie</div>
+          <p class="bench__desc">10,000 rows, about 20 in the DOM. Skeleton rows reuse the real test id. A/B wrapper.</p>
+          <div class="bench__tags">
+            <span class="chip">scroll container</span><span class="chip chip--trap">virtual list</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/network.html" data-testid="bench-network">
+          <div class="bench__no">11</div>
+          <div class="bench__title">Network gym</div>
+          <p class="bench__desc">Local /api/search. Heartbeat so networkidle never settles. Fulfil, abort, 500, slow.</p>
+          <div class="bench__tags">
+            <span class="chip">page.route</span><span class="chip chip--trap">networkidle</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/session.html" data-testid="bench-session">
+          <div class="bench__no">12</div>
+          <div class="bench__title">Auth &amp; tabs</div>
+          <p class="bench__desc">Login cookie + localStorage, two roles, invoice popup, clock-driven idle warning.</p>
+          <div class="bench__tags">
+            <span class="chip">storageState</span><span class="chip">page.clock</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/widgets.html" data-testid="bench-widgets">
+          <div class="bench__no">13</div>
+          <div class="bench__title">Design-system</div>
+          <p class="bench__desc">Portal combobox, chips, 6-box OTP paste, hash wizard, split export button.</p>
+          <div class="bench__tags">
+            <span class="chip">combobox</span><span class="chip">otp paste</span>
+          </div>
+        </a>
+
+        <a class="bench__item" href="pages/origins.html" data-testid="bench-origins">
+          <div class="bench__no">14</div>
+          <div class="bench__title">Origins &amp; permissions</div>
+          <p class="bench__desc">Card widget on 127.0.0.1:4174, sandboxed iframe, geolocation, clipboard.</p>
+          <div class="bench__tags">
+            <span class="chip">frameLocator</span><span class="chip chip--trap">cross-origin</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head">
+        <span class="section__num">§ 02</span>
+        <h2>House rules</h2>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Reading the page</span>
+          <div class="stack tiny">
+            <p><strong>Every trap is labelled.</strong> A <span class="chip chip--trap">red chip</span> marks something designed to fail a naive selector. An <span class="chip chip--time">amber chip</span> marks a timing hazard. Read the chip, then decide how you'd handle it before you look at the hint.</p>
+            <p><strong>The activity log</strong> at the bottom of the screen records clicks, changes, uploads and frame events. Use it to confirm your script really did what you think it did.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Running your tests</span>
+          <div class="stack tiny">
+            <p>Serve the folder, then point Playwright at it:</p>
+            <div class="out">node server.js
+# → http://localhost:4173
+
+npx playwright test</div>
+            <p class="muted">A starter <span class="code">playwright.config.js</span> and a worked example spec ship in this folder. See <span class="code">README.md</span>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head">
+        <span class="section__num">§ 03</span>
+        <h2>Warm-up</h2>
+      </div>
+      <p class="hint">Three elements, no test ids, no stable classes. Get a locator onto each one, then click them in order 3 → 1 → 2. Then click the header Save, not the lane Save — they share a name.</p>
+
+      <div class="card">
+        <div class="btnrow" id="warmup">
+          <button class="btn btn--ghost" data-log="warm-up 1">Ready</button>
+          <button class="btn btn--ghost" data-log="warm-up 2">Ready</button>
+          <button class="btn btn--ghost" data-log="warm-up 3">Ready</button>
+        </div>
+        <div class="out" id="warm-out"></div>
+        <div class="grid grid--2" style="margin-top:16px">
+          <div id="warmup-header">
+            <p class="tiny muted">Header region</p>
+            <button class="btn btn--ghost" data-log="home header save">Save</button>
+          </div>
+          <div id="warmup-lane">
+            <p class="tiny muted">Lane region</p>
+            <button class="btn btn--ghost" data-log="home lane save">Save</button>
+          </div>
+        </div>
+        <div class="out" id="warm-save-out"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const order = [];
+  document.querySelectorAll('#warmup button').forEach(function (b, i) {
+    b.addEventListener('click', function () {
+      order.push(i + 1);
+      const want = [3, 1, 2];
+      const ok = order.length === 3 && order.every(function (v, k) { return v === want[k]; });
+      Gym.out('#warm-out',
+        'sequence: ' + order.join(' → ') +
+        (order.length === 3 ? (ok ? '  ✓ correct' : '  ✗ wrong, resetting') : ''));
+      if (order.length === 3) { setTimeout(function () { order.length = 0; }, 900); }
+    });
+  });
+  document.querySelector('#warmup-header button').addEventListener('click', function () {
+    Gym.out('#warm-save-out', 'header save');
+  });
+  document.querySelector('#warmup-lane button').addEventListener('click', function () {
+    Gym.out('#warm-save-out', 'lane save');
+  });
+})();
+</script>
+</body>
+</html>

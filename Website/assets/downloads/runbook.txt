@@ -1,0 +1,21 @@
+LOCATOR GYM - SAMPLE RUNBOOK
+============================
+
+This file exists so you have something real to download and something
+real to upload. It is plain text, about 1 KB, and its contents never
+change - which makes it a good fixture for content assertions.
+
+1. Downloads
+   Wrap the click in page.waitForEvent('download'). The returned
+   Download object gives you suggestedFilename() and a path via
+   download.path(). Save it with download.saveAs().
+
+2. Uploads
+   setInputFiles() takes a path, an array of paths, or an object with
+   { name, mimeType, buffer } if you would rather not touch the disk.
+
+3. Checksum
+   The line below is here so you can assert on file contents after a
+   round trip.
+
+   FIXTURE-TOKEN: 7f3a-91cd-4e02-bb18

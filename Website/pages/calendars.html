@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendars — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 04</p>
+    <h1>Calendars</h1>
+    <p class="lede">
+      Six ways to ask for a date. The native inputs take a value string and are done in one line.
+      The custom pickers need you to navigate months, dodge disabled cells, and in one case work out
+      which "15" you're actually clicking.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Native date inputs</h2></div>
+      <p class="hint">
+        These accept <span class="code">fill('2026-11-19')</span> directly — no clicking required.
+        Note the formats differ: <span class="code">week</span> wants <span class="code">2026-W47</span>
+        and <span class="code">datetime-local</span> wants a <span class="code">T</span> separator.
+      </p>
+
+      <div class="card">
+        <div class="grid grid--3">
+          <div class="field">
+            <label for="nat-date">Ship date</label>
+            <input id="nat-date" type="date" min="2026-08-01" max="2027-06-30" data-testid="native-date" data-log-change="ship date">
+          </div>
+          <div class="field">
+            <label for="nat-dt">Cutoff (date &amp; time)</label>
+            <input id="nat-dt" type="datetime-local" data-testid="native-datetime" data-log-change="cutoff">
+          </div>
+          <div class="field">
+            <label for="nat-month">Billing month</label>
+            <input id="nat-month" type="month" data-testid="native-month" data-log-change="billing month">
+          </div>
+          <div class="field">
+            <label for="nat-week">Planning week</label>
+            <input id="nat-week" type="week" data-testid="native-week" data-log-change="week">
+          </div>
+          <div class="field">
+            <label for="nat-time">Dock slot</label>
+            <input id="nat-time" type="time" step="900" data-testid="native-time" data-log-change="dock slot">
+          </div>
+          <div class="field">
+            <label for="nat-locked">Locked date <span class="chip chip--trap">readonly</span></label>
+            <input id="nat-locked" type="date" value="2026-12-24" readonly data-testid="native-readonly">
+          </div>
+        </div>
+        <div class="btnrow"><button class="btn" data-testid="native-read">Read all values</button></div>
+        <div class="out" data-testid="native-out"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Popup picker on a read-only field</h2></div>
+      <p class="hint">
+        The text input rejects typing, so the only way in is the grid. Days carry
+        <span class="code">data-date</span>, which makes this the friendly version — cells from the
+        neighbouring months are rendered too, and clicking one jumps the view.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Delivery date</span>
+          <div class="field pos-rel">
+            <label for="pop-input">Choose a date</label>
+            <input id="pop-input" type="text" readonly placeholder="Click to open" data-testid="popup-input" style="cursor:pointer">
+            <div id="pop-cal" class="cal cal--pop" hidden data-testid="popup-calendar"></div>
+          </div>
+          <div class="out" data-testid="popup-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Drill-down picker <span class="chip chip--trap">no data-date</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            Click the month title to reach months, click again for years. Day cells expose only their
+            number, and leading/trailing cells show duplicate numbers — filter by
+            <span class="code">[data-outside="false"]</span> or use exact text plus position.
+          </p>
+          <div class="field pos-rel">
+            <label for="drill-input">Audit date</label>
+            <input id="drill-input" type="text" readonly placeholder="Click to open" data-testid="drill-input" style="cursor:pointer">
+            <div id="drill-cal" class="cal cal--pop" hidden data-testid="drill-calendar"></div>
+          </div>
+          <div class="out" data-testid="drill-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Date range, two panels</h2></div>
+      <p class="hint">
+        First click sets the start, second sets the end, third starts over. The right panel is always
+        one month ahead, so a range crossing a month boundary needs clicks in two different grids.
+      </p>
+
+      <div class="card">
+        <div class="inline" style="margin-bottom:14px">
+          <div class="field" style="width:160px">
+            <label for="rng-from">From</label>
+            <input id="rng-from" type="text" readonly data-testid="range-from" placeholder="—">
+          </div>
+          <div class="field" style="width:160px">
+            <label for="rng-to">To</label>
+            <input id="rng-to" type="text" readonly data-testid="range-to" placeholder="—">
+          </div>
+          <button class="btn btn--ghost" id="rng-clear" data-testid="range-clear">Clear range</button>
+        </div>
+        <div class="dualcal">
+          <div class="cal" id="range-left" data-testid="range-left"></div>
+          <div class="cal" id="range-right" data-testid="range-right"></div>
+        </div>
+        <div class="out" data-testid="range-out"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Blocked dates &amp; bounded range</h2></div>
+      <p class="hint">
+        Weekends, three public holidays and everything outside a 90-day window are disabled. Clicking
+        a disabled cell does nothing — <span class="code">click()</span> succeeds and the value stays
+        empty, which is the failure mode worth learning to catch.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Site visit (weekdays only)</span>
+          <div class="cal" id="blocked-cal" data-testid="blocked-calendar"></div>
+          <div class="out" data-testid="blocked-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Inline calendar with events</span>
+          <p class="tiny muted" style="margin:0 0 10px">Always visible, no trigger. Dates with a marker have a scheduled job; click one to read it.</p>
+          <div class="cal" id="event-cal" data-testid="event-calendar"></div>
+          <div class="out" data-testid="event-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Picker inside a frame</h2></div>
+      <p class="hint">Same widget, one <span class="code">frameLocator</span> away. The frame posts the chosen date back to this page, so you can assert on either side.</p>
+
+      <div class="card">
+        <p class="frame-note">iframe#cal-frame → cal → day</p>
+        <iframe src="../frames/cal-frame.html" id="cal-frame" name="calFrame" height="340" title="Calendar in a frame"></iframe>
+        <div class="out" data-testid="frame-cal-out"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script src="../assets/calendar.js"></script>
+<script>
+(function () {
+  const $ = function (s) { return document.querySelector(s); };
+  const TODAY = new Date(2026, 7, 3); // fixed "today" so tests stay deterministic
+
+  /* ---- § 01 native ---- */
+  $('[data-testid="native-read"]').addEventListener('click', function () {
+    Gym.out('[data-testid="native-out"]',
+      'date=' + $('#nat-date').value +
+      '\ndatetime=' + $('#nat-dt').value +
+      '\nmonth=' + $('#nat-month').value +
+      '\nweek=' + $('#nat-week').value +
+      '\ntime=' + $('#nat-time').value +
+      '\nreadonly=' + $('#nat-locked').value);
+  });
+
+  /* ---- § 02 popup ---- */
+  const popCal = GymCal.create($('#pop-cal'), {
+    today: TODAY,
+    showOutside: true,
+    dataDate: true,
+    onPick: function (iso) {
+      $('#pop-input').value = iso;
+      $('#pop-cal').hidden = true;
+      Gym.out('[data-testid="popup-out"]', 'delivery = ' + iso);
+      Gym.log('calendar', 'popup → ' + iso);
+    }
+  });
+  $('#pop-input').addEventListener('click', function () {
+    $('#pop-cal').hidden = !$('#pop-cal').hidden;
+    if (!$('#pop-cal').hidden) popCal.render();
+  });
+
+  /* ---- § 02 drill-down ---- */
+  const drillCal = GymCal.create($('#drill-cal'), {
+    today: TODAY,
+    showOutside: true,
+    dataDate: false,
+    drilldown: true,
+    onPick: function (iso) {
+      $('#drill-input').value = iso;
+      $('#drill-cal').hidden = true;
+      Gym.out('[data-testid="drill-out"]', 'audit = ' + iso);
+      Gym.log('calendar', 'drill-down → ' + iso);
+    }
+  });
+  $('#drill-input').addEventListener('click', function () {
+    $('#drill-cal').hidden = !$('#drill-cal').hidden;
+    if (!$('#drill-cal').hidden) drillCal.render();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.pos-rel')) {
+      $('#pop-cal').hidden = true;
+      $('#drill-cal').hidden = true;
+    }
+  });
+
+  /* ---- § 03 range ---- */
+  let start = null, end = null;
+  const left = GymCal.create($('#range-left'), { today: TODAY, dataDate: true, group: 'range', onPick: pickRange, rangeGetter: getRange });
+  const right = GymCal.create($('#range-right'), { today: TODAY, dataDate: true, monthOffset: 1, group: 'range', onPick: pickRange, rangeGetter: getRange });
+  function getRange() { return { start: start, end: end }; }
+  function pickRange(iso) {
+    if (!start || (start && end)) { start = iso; end = null; }
+    else if (iso < start) { end = start; start = iso; }
+    else { end = iso; }
+    $('#rng-from').value = start || '';
+    $('#rng-to').value = end || '';
+    left.render(); right.render();
+    Gym.out('[data-testid="range-out"]', start && end
+      ? 'range = ' + start + ' → ' + end + ' (' + (Math.round((new Date(end) - new Date(start)) / 864e5) + 1) + ' days)'
+      : 'start = ' + start + ' · waiting for an end date');
+    Gym.log('calendar', 'range ' + start + (end ? ' → ' + end : ''));
+  }
+  $('#rng-clear').addEventListener('click', function () {
+    start = end = null; $('#rng-from').value = ''; $('#rng-to').value = '';
+    left.render(); right.render(); Gym.out('[data-testid="range-out"]', 'range cleared');
+  });
+  left.render(); right.render();
+
+  /* ---- § 04 blocked ---- */
+  const HOLIDAYS = ['2026-08-15', '2026-10-02', '2026-11-19'];
+  const minD = '2026-08-03', maxD = '2026-11-01';
+  GymCal.create($('#blocked-cal'), {
+    today: TODAY, dataDate: true, min: minD, max: maxD,
+    disable: function (iso, d) {
+      return d.getDay() === 0 || d.getDay() === 6 || HOLIDAYS.indexOf(iso) > -1;
+    },
+    onPick: function (iso) {
+      Gym.out('[data-testid="blocked-out"]', 'site visit = ' + iso);
+      Gym.log('calendar', 'blocked-cal → ' + iso);
+    }
+  }).render();
+
+  /* ---- § 04 events ---- */
+  const EVENTS = {
+    '2026-08-07': 'Quarterly stock count · 06:00',
+    '2026-08-12': 'Carrier rate review · 14:30',
+    '2026-08-21': 'Warehouse audit · all day',
+    '2026-09-03': 'Peak-season readiness drill'
+  };
+  GymCal.create($('#event-cal'), {
+    today: TODAY, dataDate: true, events: EVENTS,
+    onPick: function (iso) {
+      Gym.out('[data-testid="event-out"]', EVENTS[iso] ? iso + ' — ' + EVENTS[iso] : iso + ' — nothing scheduled');
+    }
+  }).render();
+
+  /* ---- § 05 frame relay ---- */
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.__gym === 'cal') {
+      Gym.out('[data-testid="frame-cal-out"]', 'frame reported: ' + e.data.value);
+    }
+  });
+})();
+</script>
+</body>
+</html>

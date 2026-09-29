@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Calendar in a frame</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame" data-root="../">
+  <span class="depth-tag">calendar frame</span>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+    <div class="cal" id="frame-cal" data-testid="frame-calendar"></div>
+    <div style="flex:1;min-width:180px">
+      <div class="field">
+        <label for="fc-value">Chosen date</label>
+        <input id="fc-value" type="text" readonly data-testid="frame-cal-value" placeholder="—">
+      </div>
+      <button class="btn btn--sm" data-testid="frame-cal-send">Report to parent</button>
+      <div class="out" data-testid="frame-cal-status"></div>
+    </div>
+  </div>
+
+<script src="../assets/app.js"></script>
+<script src="../assets/calendar.js"></script>
+<script>
+(function () {
+  var chosen = null;
+  GymCal.create(document.getElementById('frame-cal'), {
+    today: new Date(2026, 7, 3),
+    dataDate: true,
+    onPick: function (v) {
+      chosen = v;
+      document.getElementById('fc-value').value = v;
+      Gym.log('calendar', 'frame picked ' + v);
+    }
+  }).render();
+
+  document.querySelector('[data-testid="frame-cal-send"]').addEventListener('click', function () {
+    document.querySelector('[data-testid="frame-cal-status"]').textContent =
+      chosen ? 'sent ' + chosen + ' to the parent page' : 'pick a date first';
+    if (chosen) { try { window.parent.postMessage({ __gym: 'cal', value: chosen }, '*'); } catch (e) {} }
+  });
+})();
+</script>
+</body>
+</html>

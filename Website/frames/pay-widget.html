@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Card widget</title>
+<style>
+  body { margin: 0; font: 14px ui-sans-serif, system-ui, sans-serif; color: #0E2038; background: #F9FBFC; padding: 16px; }
+  label { display: block; font: 11px ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; color: #4A6480; margin: 10px 0 4px; }
+  input { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #C6D5E1; border-radius: 3px; font: 14px ui-sans-serif, system-ui; }
+  button { margin-top: 12px; font: 12px ui-monospace, monospace; padding: 7px 13px; background: #0E2038; color: #fff; border: 0; border-radius: 3px; cursor: pointer; }
+  .hint { font-size: 12px; color: #4A6480; margin: 0 0 8px; }
+  .out { font: 12px ui-monospace, monospace; margin-top: 10px; color: #4A6480; }
+</style>
+</head>
+<body>
+<p class="hint">Origin: <span id="origin"></span>. The parent page cannot query these nodes directly.</p>
+<label for="card-number">Card number</label>
+<input id="card-number" data-testid="card-number" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="off">
+<label for="card-exp">Expiry</label>
+<input id="card-exp" data-testid="card-exp" placeholder="08 / 29">
+<label for="card-cvc">CVC</label>
+<input id="card-cvc" data-testid="card-cvc" inputmode="numeric" maxlength="4" placeholder="123">
+<button type="button" data-testid="card-pay">Tokenise card</button>
+<div class="out" data-testid="card-out"></div>
+<script>
+document.getElementById('origin').textContent = location.origin;
+document.querySelector('[data-testid="card-pay"]').addEventListener('click', async function () {
+  const number = document.querySelector('[data-testid="card-number"]').value;
+  const out = document.querySelector('[data-testid="card-out"]');
+  try {
+    const res = await fetch('/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: number })
+    });
+    const body = await res.json();
+    if (!res.ok) { out.textContent = body.error || 'failed'; return; }
+    out.textContent = body.token;
+    parent.postMessage({ __gym: 'pay', token: body.token, last4: body.last4 }, '*');
+  } catch (err) {
+    out.textContent = String(err);
+  }
+});
+</script>
+</body>
+</html>

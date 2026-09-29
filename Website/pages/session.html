@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auth &amp; tabs — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 12</p>
+    <h1>Auth, tabs &amp; the clock</h1>
+    <p class="lede">
+      Log in once, snapshot <span class="code">storageState</span>, reuse it.
+      A second role, a popup invoice, and a session that dies when you
+      <span class="code">page.clock.fastForward</span>.
+    </p>
+
+    <section class="section" data-testid="login-panel">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Sign in</h2></div>
+      <div class="card" style="max-width:420px">
+        <span class="card__label">POST /api/login</span>
+        <p class="tiny muted">maker / maker-pass · viewer / viewer-pass · asha / asha-pass</p>
+        <div class="field">
+          <label for="auth-user">Username</label>
+          <input id="auth-user" data-testid="auth-username" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="auth-pass">Password</label>
+          <input id="auth-pass" type="password" data-testid="auth-password" autocomplete="current-password">
+        </div>
+        <div class="btnrow">
+          <button class="btn" data-testid="auth-submit">Sign in</button>
+        </div>
+        <div class="out" data-testid="auth-error"></div>
+      </div>
+    </section>
+
+    <section class="section" data-testid="dash-panel" hidden>
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Desk</h2></div>
+      <div class="card">
+        <span class="card__label">Authenticated surface</span>
+        <p>Signed in as <strong data-testid="auth-name"></strong>
+          · role <span class="chip" data-testid="auth-role"></span>
+          · last activity <span data-testid="auth-clock">—</span>
+        </p>
+        <div class="btnrow">
+          <button class="btn" data-testid="open-invoice">Open invoice</button>
+          <button class="btn btn--ghost" data-testid="refresh-me">GET /api/me</button>
+          <button class="btn btn--ghost" data-testid="auth-logout">Sign out</button>
+        </div>
+        <div class="out" data-testid="auth-out"></div>
+        <ul class="filelist" data-testid="invoice-list"></ul>
+      </div>
+    </section>
+
+    <section class="section" data-testid="expiry-panel" hidden>
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Idle expiry</h2></div>
+      <div class="card">
+        <p class="hint">After 5 minutes of <em>clock</em> time with no click, the warning dialog appears. Fast-forward; do not sleep.</p>
+        <div class="out" data-testid="idle-out">watching</div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const loginPanel = document.querySelector('[data-testid="login-panel"]');
+  const dash = document.querySelector('[data-testid="dash-panel"]');
+  const expiry = document.querySelector('[data-testid="expiry-panel"]');
+  const err = document.querySelector('[data-testid="auth-error"]');
+  const out = document.querySelector('[data-testid="auth-out"]');
+  const idleOut = document.querySelector('[data-testid="idle-out"]');
+  const clockEl = document.querySelector('[data-testid="auth-clock"]');
+  let lastActive = Date.now();
+  let warningOpen = false;
+
+  function showDash(user) {
+    loginPanel.hidden = true;
+    dash.hidden = false;
+    expiry.hidden = false;
+    document.querySelector('[data-testid="auth-name"]').textContent = user.name;
+    document.querySelector('[data-testid="auth-role"]').textContent = user.role;
+    localStorage.setItem('gymUser', JSON.stringify(user));
+    lastActive = Date.now();
+    loadInvoices();
+  }
+  function showLogin() {
+    loginPanel.hidden = false;
+    dash.hidden = true;
+    expiry.hidden = true;
+    localStorage.removeItem('gymUser');
+  }
+
+  async function loadInvoices() {
+    const res = await fetch('/api/invoices');
+    const body = await res.json();
+    const ul = document.querySelector('[data-testid="invoice-list"]');
+    ul.innerHTML = '';
+    if (!res.ok) { out.textContent = 'invoices ' + res.status; return; }
+    body.invoices.forEach(function (inv) {
+      const li = document.createElement('li');
+      li.dataset.testid = 'invoice-row';
+      li.dataset.id = inv.id;
+      li.innerHTML = '<span>' + inv.id + ' · ' + inv.customer + '</span><span>' + inv.status + '</span>';
+      ul.appendChild(li);
+    });
+    out.textContent = 'invoices ' + body.invoices.length;
+  }
+
+  document.querySelector('[data-testid="auth-submit"]').addEventListener('click', async function () {
+    err.textContent = '';
+    const username = document.querySelector('[data-testid="auth-username"]').value;
+    const password = document.querySelector('[data-testid="auth-password"]').value;
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password })
+    });
+    const body = await res.json();
+    if (!res.ok) { err.textContent = body.error || 'login failed'; Gym.log('login', 'fail'); return; }
+    Gym.log('login', body.user.username + ' / ' + body.user.role);
+    showDash(body.user);
+  });
+
+  document.querySelector('[data-testid="auth-logout"]').addEventListener('click', async function () {
+    await fetch('/api/logout', { method: 'POST' });
+    Gym.log('logout', 'ok');
+    showLogin();
+  });
+
+  document.querySelector('[data-testid="refresh-me"]').addEventListener('click', async function () {
+    const res = await fetch('/api/me');
+    out.textContent = res.status + ' ' + JSON.stringify(await res.json());
+  });
+
+  document.querySelector('[data-testid="open-invoice"]').addEventListener('click', function () {
+    const w = window.open('/pages/invoice.html', 'gymInvoice', 'width=520,height=420');
+    Gym.log('popup', 'invoice');
+    if (w) w.focus();
+  });
+
+  ['click','keydown'].forEach(function (ev) {
+    document.addEventListener(ev, function () { lastActive = Date.now(); }, true);
+  });
+
+  function warn() {
+    if (warningOpen || dash.hidden) return;
+    warningOpen = true;
+    idleOut.textContent = 'idle warning';
+    const root = document.createElement('div');
+    root.className = 'gym-dialog-root';
+    root.dataset.testid = 'idle-dialog-root';
+    root.innerHTML =
+      '<div class="gym-dialog" role="dialog" aria-modal="true" aria-label="Session expiring" data-testid="idle-dialog">' +
+        '<h3>Your session is about to expire due to inactivity</h3>' +
+        '<div class="btnrow">' +
+          '<button class="btn" data-testid="idle-continue">Stay signed in</button>' +
+          '<button class="btn btn--ghost" data-testid="idle-leave">Sign out</button>' +
+        '</div></div>';
+    document.body.appendChild(root);
+    root.querySelector('[data-testid="idle-continue"]').addEventListener('click', function () {
+      lastActive = Date.now();
+      warningOpen = false;
+      idleOut.textContent = 'continued';
+      root.remove();
+    });
+    root.querySelector('[data-testid="idle-leave"]').addEventListener('click', function () {
+      warningOpen = false;
+      root.remove();
+      document.querySelector('[data-testid="auth-logout"]').click();
+    });
+    Gym.log('idle', 'warning');
+  }
+
+  setInterval(function () {
+    clockEl.textContent = new Date().toLocaleTimeString();
+    if (!dash.hidden && !warningOpen && Date.now() - lastActive > 5 * 60 * 1000) warn();
+  }, 500);
+
+  fetch('/api/me').then(function (res) {
+    if (!res.ok) return showLogin();
+    return res.json().then(function (body) { showDash(body.user); });
+  }).catch(showLogin);
+})();
+</script>
+</body>
+</html>

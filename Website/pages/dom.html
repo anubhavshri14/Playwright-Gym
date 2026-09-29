@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hostile DOM — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 07</p>
+    <h1>Hostile DOM</h1>
+    <p class="lede">
+      Everything here is legal HTML that a real build tool or framework could emit. Ids regenerate
+      on reload, three elements answer to the same one, text is chopped into fragments, and a
+      transparent div sits over the button you want.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Unstable identity</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Ids that change every reload <span class="chip chip--trap">reload to see</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Reload the page and read the ids again. Anchor on <span class="code">data-role</span>, on text, or on structure instead.</p>
+          <div class="btnrow" id="unstable-host"></div>
+          <div class="out" data-testid="unstable-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Three elements, one id <span class="chip chip--trap">invalid but common</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            <span class="code">document.getElementById('save')</span> returns the first.
+            <span class="code">page.locator('#save')</span> resolves to three and throws in strict mode.
+          </p>
+          <div class="btnrow">
+            <button class="btn btn--ghost" id="save" data-which="header">Save (header)</button>
+            <button class="btn btn--ghost" id="save" data-which="body">Save (body)</button>
+            <button class="btn btn--ghost" id="save" data-which="footer">Save (footer)</button>
+          </div>
+          <div class="out" data-testid="dupe-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Hashed class names</span>
+          <p class="tiny muted" style="margin:0 0 10px">Rebuilt on every load, the way CSS Modules or styled-components emit them.</p>
+          <div id="hashed-host"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Namespaced attributes</span>
+          <p class="tiny muted" style="margin:0 0 10px">Colons, dots and brackets need escaping inside CSS selectors.</p>
+          <button class="btn btn--ghost" data-qa:role="primary-action" data-cy.id="checkout[1]" data-testid="odd-attributes">Check out</button>
+          <div class="out" data-testid="attr-out">try: [data-testid="odd-attributes"], or escape the colon</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Text that isn't text</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Fragmented and padded</span>
+          <ul style="list-style:none;padding:0;margin:0;font-size:14px">
+            <li data-testid="frag-1" style="padding:6px 0;border-bottom:1px solid var(--line-soft)">Order <span>#</span><span>4</span><span>4</span><span>1</span><span>7</span> shipped</li>
+            <li data-testid="frag-2" style="padding:6px 0;border-bottom:1px solid var(--line-soft)">Order   #4418   <!-- comment inside the text -->shipped</li>
+            <li data-testid="frag-3" style="padding:6px 0;border-bottom:1px solid var(--line-soft)">Order&nbsp;#4419&nbsp;shipped</li>
+            <li data-testid="frag-4" style="padding:6px 0">Order&#8203;#4420&#8203;shipped</li>
+          </ul>
+          <p class="tiny muted" style="margin:10px 0 0">
+            Row 3 uses non-breaking spaces, row 4 uses zero-width spaces. All four render identically.
+            <span class="code">getByText('Order #4417 shipped')</span> normalises whitespace and passes;
+            <span class="code">textContent === </span> does not.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Twelve identical buttons <span class="chip chip--trap">scope required</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Every one says "Remove". Only the row gives you the context you need.</p>
+          <div class="tbl-wrap">
+            <table class="data" data-testid="repeat-table">
+              <thead><tr><th>Rule</th><th>Scope</th><th></th></tr></thead>
+              <tbody id="repeat-body"></tbody>
+            </table>
+          </div>
+          <div class="out" data-testid="repeat-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Clicks that don't land</h2></div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <span class="card__label">Transparent overlay <span class="chip chip--trap">intercepted</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">A sibling div covers the button. Playwright reports the interceptor by name and retries until it clears.</p>
+          <div class="overlay-trap" style="padding:10px 0">
+            <button class="btn" data-testid="covered-button">Approve</button>
+            <div class="overlay-trap__veil" id="veil" data-testid="veil" title="I intercept your clicks"></div>
+          </div>
+          <button class="btn btn--ghost btn--sm" data-testid="lift-veil">Lift the overlay</button>
+          <div class="out" data-testid="overlay-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">pointer-events: none</span>
+          <p class="tiny muted" style="margin:0 0 10px">This button receives no pointer events at all. A normal click resolves against whatever is behind it.</p>
+          <button class="btn" data-testid="dead-button" style="pointer-events:none;opacity:.55">Cannot be clicked</button>
+          <button class="btn btn--ghost btn--sm" data-testid="revive-button" style="margin-top:8px">Restore pointer events</button>
+          <div class="out" data-testid="dead-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Moving target <span class="chip chip--time">2 s orbit</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Playwright waits for the element to stop moving between two animation frames — so this one just works. Try it.</p>
+          <div style="position:relative;height:96px;border:1px solid var(--line-soft);border-radius:3px;background:#fff;overflow:hidden">
+            <button class="btn btn--sm" id="mover" data-testid="moving-button" style="position:absolute;top:34px;left:8px">Catch me</button>
+          </div>
+          <div class="out" data-testid="mover-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Five ways to be invisible</h2></div>
+      <p class="hint">
+        All five boxes below "exist". Only one is visible to a user, and Playwright's
+        <span class="code">toBeVisible()</span> agrees with the user on all five. Check which assertions
+        you'd need for each.
+      </p>
+
+      <div class="card">
+        <div class="grid grid--3">
+          <div><span class="chip">display:none</span><div data-testid="inv-display" style="display:none">Payload A</div></div>
+          <div><span class="chip">visibility:hidden</span><div data-testid="inv-visibility" style="visibility:hidden">Payload B</div></div>
+          <div><span class="chip">opacity:0</span><div data-testid="inv-opacity" style="opacity:0">Payload C</div></div>
+          <div><span class="chip">zero size</span><div data-testid="inv-size" style="width:0;height:0;overflow:hidden">Payload D</div></div>
+          <div><span class="chip">off-screen</span><div data-testid="inv-offscreen" style="position:absolute;left:-9999px">Payload E</div></div>
+          <div><span class="chip chip--ok">visible</span><div data-testid="inv-visible">Payload F</div></div>
+        </div>
+        <p class="tiny muted" style="margin:14px 0 0">
+          Note the odd one out: <span class="code">opacity:0</span> is <em>visible</em> to Playwright —
+          it occupies layout space and can receive clicks. That mismatch causes more flaky tests than
+          any other item on this page.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Nodes that come and go</h2></div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <span class="card__label">Self-destructs <span class="chip chip--time">6 s</span></span>
+          <button class="btn btn--ghost btn--sm" data-testid="spawn-temp">Spawn temporary node</button>
+          <div id="temp-slot" data-testid="temp-slot" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Detach and reattach <span class="chip chip--trap">stale handle</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">The node is removed and a fresh one inserted. An <span class="code">ElementHandle</span> goes stale; a <span class="code">Locator</span> re-resolves.</p>
+          <div id="detach-slot"><button class="btn btn--ghost btn--sm" data-testid="detach-target">Original node</button></div>
+          <button class="btn btn--ghost btn--sm" data-testid="detach-go" style="margin-top:8px">Swap the node</button>
+          <div class="out" data-testid="detach-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Third click only</span>
+          <p class="tiny muted" style="margin:0 0 10px">Nothing visible happens on clicks one and two.</p>
+          <button class="btn btn--ghost btn--sm" data-testid="triple-button">Click me (0)</button>
+          <div id="triple-slot" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Twenty wrappers deep</span>
+          <p class="tiny muted" style="margin:0 0 10px">A descendant selector still finds it — this is here so you can see what a brittle path-based selector looks like.</p>
+          <div id="deep-host"></div>
+          <div class="out" data-testid="deep-nest-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Inside a &lt;template&gt; <span class="chip chip--trap">not in the DOM</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Template content lives in a separate document fragment. Locators cannot see it until it is cloned in.</p>
+          <template id="tpl">
+            <button class="btn btn--ghost btn--sm" data-testid="from-template">Cloned button</button>
+          </template>
+          <button class="btn btn--ghost btn--sm" data-testid="clone-template">Clone it in</button>
+          <div id="tpl-slot" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Appears on scroll</span>
+          <p class="tiny muted" style="margin:0 0 10px">Rendered only once it enters the viewport. Scroll the inner box.</p>
+          <div id="io-scroll" style="height:110px;overflow-y:auto;border:1px solid var(--line-soft);border-radius:3px;background:#fff;padding:8px">
+            <p class="tiny muted" style="height:150px;margin:0">Keep scrolling…</p>
+            <div id="io-sentinel"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 06</span><h2>Canvas and SVG</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Canvas <span class="chip chip--trap">no DOM inside</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            Three targets are painted, not built. There is nothing to locate — click by offset with
+            <span class="code">click({ position: { x, y } })</span> and read the result text.
+          </p>
+          <canvas id="cv" width="360" height="150" data-testid="canvas" style="border:1px solid var(--line);border-radius:3px;background:#fff;max-width:100%"></canvas>
+          <div class="out" data-testid="canvas-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">SVG <span class="chip chip--trap">className is not a string</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            SVG children are real DOM nodes, so they are locatable — but
+            <span class="code">element.className</span> returns an <span class="code">SVGAnimatedString</span>,
+            not a string, which breaks naive property checks.
+          </p>
+          <svg viewBox="0 0 360 150" width="100%" height="150" data-testid="svg-map" role="img" aria-label="Regional map">
+            <rect x="0" y="0" width="360" height="150" fill="#F4F8FB"></rect>
+            <circle cx="70" cy="75" r="34" class="node region-emea" data-region="EMEA" fill="#1E6091" style="cursor:pointer"></circle>
+            <circle cx="180" cy="60" r="26" class="node region-apac" data-region="APAC" fill="#B0401D" style="cursor:pointer"></circle>
+            <circle cx="285" cy="95" r="30" class="node region-amer" data-region="AMER" fill="#1B7355" style="cursor:pointer"></circle>
+            <text x="70" y="80" text-anchor="middle" fill="#fff" font-size="11" font-family="ui-monospace,monospace" pointer-events="none">EMEA</text>
+            <text x="180" y="64" text-anchor="middle" fill="#fff" font-size="11" font-family="ui-monospace,monospace" pointer-events="none">APAC</text>
+            <text x="285" y="99" text-anchor="middle" fill="#fff" font-size="11" font-family="ui-monospace,monospace" pointer-events="none">AMER</text>
+          </svg>
+          <div class="out" data-testid="svg-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 07</span><h2>Object properties, not attributes</h2></div>
+      <p class="hint">
+        Attributes are the initial markup; properties are the live state. These four elements make the
+        gap visible — read them with <span class="code">getAttribute()</span>, then with
+        <span class="code">evaluate(el =&gt; el.someProp)</span>, and compare.
+      </p>
+
+      <div class="card">
+        <div class="grid grid--2">
+          <div>
+            <div class="field">
+              <label for="prop-input">Input with a stale value attribute</label>
+              <input id="prop-input" type="text" value="initial" data-testid="prop-input">
+              <p class="tiny muted" style="margin:6px 0 0">Type in it. The <span class="code">value</span> attribute still says <span class="code">initial</span>; the property has changed.</p>
+            </div>
+
+            <label class="check"><input type="checkbox" checked data-testid="prop-checkbox"> Checkbox with a <span class="code">checked</span> attribute</label>
+            <p class="tiny muted" style="margin:6px 0 12px">Untick it. The attribute survives; <span class="code">isChecked()</span> reads the property.</p>
+
+            <div class="field">
+              <label for="prop-select">Select</label>
+              <select id="prop-select" data-testid="prop-select">
+                <option value="a" selected>Alpha</option><option value="b">Beta</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="field__label">Custom object state</span>
+            <p class="tiny muted" style="margin:0 0 10px">
+              The button below carries a JS object on the element itself — no attribute mirrors it.
+              Only <span class="code">evaluate</span> can reach it.
+            </p>
+            <div class="out" style="margin:0 0 10px">await page.getByTestId('stateful')
+  .evaluate(el =&gt; el.orderState)</div>
+            <button class="btn" data-testid="stateful">Advance order state</button>
+            <div class="out" data-testid="state-out"></div>
+
+            <div class="btnrow">
+              <button class="btn btn--ghost btn--sm" data-testid="compare-props">Compare attribute vs property</button>
+            </div>
+            <div class="out" data-testid="compare-out"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 09</span><h2>Inert region and late test id</h2></div>
+      <div class="grid grid--2">
+        <div class="card" id="inert-card">
+          <span class="card__label">inert section</span>
+          <p class="hint">Click Make inert, then the button inside should not receive the click.</p>
+          <button class="btn btn--ghost" data-testid="make-inert">Make inert</button>
+          <button class="btn" data-testid="inert-target">Target inside</button>
+          <div class="out" data-testid="inert-dom-out"></div>
+        </div>
+        <div class="card">
+          <span class="card__label">testid injected after 300 ms</span>
+          <button class="btn" id="hydrate-btn">Hydrated action</button>
+          <div class="out" data-testid="hydrate-out"></div>
+        </div>
+      </div>
+    </section>
+</main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const $ = function (s) { return document.querySelector(s); };
+  const $$ = function (s) { return Array.from(document.querySelectorAll(s)); };
+
+  /* ---- § 01 unstable ids ---- */
+  const roles = [['primary', 'Publish'], ['secondary', 'Save draft'], ['tertiary', 'Discard']];
+  $('#unstable-host').innerHTML = roles.map(function (r) {
+    return '<button class="btn btn--ghost" id="' + Gym.rid('btn') + '" data-role="' + r[0] + '">' + r[1] + '</button>';
+  }).join('');
+  $('#unstable-host').addEventListener('click', function (e) {
+    const b = e.target.closest('button'); if (!b) return;
+    Gym.out('[data-testid="unstable-out"]', 'clicked data-role="' + b.dataset.role + '" · this load its id is #' + b.id);
+    Gym.log('dom', 'unstable id ' + b.id);
+  });
+
+  /* duplicate ids */
+  $$('#save, [id="save"]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      Gym.out('[data-testid="dupe-out"]', 'the ' + b.dataset.which + ' Save fired · matching #save yields ' +
+        document.querySelectorAll('[id="save"]').length + ' elements');
+    });
+  });
+
+  /* hashed classes */
+  function hash() { return Math.random().toString(36).slice(2, 8); }
+  $('#hashed-host').innerHTML =
+    '<div class="Card_root__' + hash() + '" style="border:1px solid var(--line-soft);border-radius:3px;padding:10px">' +
+      '<span class="Card_title__' + hash() + ' mono tiny">Build 4471</span>' +
+      '<button class="Button_base__' + hash() + ' Button_ghost__' + hash() + ' btn btn--ghost btn--sm" ' +
+        'data-testid="hashed-button" style="margin-top:8px">Promote build</button>' +
+    '</div>';
+  $('[data-testid="hashed-button"]').addEventListener('click', function () {
+    Gym.log('dom', 'hashed-class button clicked · classes: ' + this.className);
+  });
+
+  /* ---- § 02 repeated rows ---- */
+  const RULES = [['Block hairpin NAT', 'edge'], ['Allow 443 inbound', 'edge'], ['Drop RFC1918', 'core'],
+                 ['Rate-limit /api', 'core'], ['Mirror to IDS', 'core'], ['Log denies', 'edge']];
+  $('#repeat-body').innerHTML = RULES.map(function (r) {
+    return '<tr data-rule="' + r[0] + '"><td>' + r[0] + '</td><td class="mono tiny">' + r[1] + '</td>' +
+      '<td><button class="btn btn--ghost btn--sm">Remove</button> ' +
+          '<button class="btn btn--ghost btn--sm">Remove</button></td></tr>';
+  }).join('');
+  $('#repeat-body').addEventListener('click', function (e) {
+    const b = e.target.closest('button'); if (!b) return;
+    const tr = b.closest('tr');
+    const idx = Array.from(tr.querySelectorAll('button')).indexOf(b);
+    Gym.out('[data-testid="repeat-out"]', 'row "' + tr.dataset.rule + '" · button ' + (idx + 1) + ' of 2 · ' +
+      document.querySelectorAll('#repeat-body button').length + ' "Remove" buttons on the page');
+  });
+
+  /* ---- § 03 overlay ---- */
+  $('[data-testid="covered-button"]').addEventListener('click', function () {
+    Gym.out('[data-testid="overlay-out"]', 'Approve reached the button.');
+    Gym.log('dom', 'covered button clicked');
+  });
+  $('[data-testid="veil"]').addEventListener('click', function () {
+    Gym.out('[data-testid="overlay-out"]', 'The overlay swallowed that click. Lift it, or use force.');
+  });
+  $('[data-testid="lift-veil"]').addEventListener('click', function () {
+    const v = $('#veil');
+    if (v) { v.remove(); Gym.out('[data-testid="overlay-out"]', 'Overlay removed — the button is reachable now.'); }
+  });
+
+  /* pointer-events */
+  $('[data-testid="dead-button"]').addEventListener('click', function () {
+    Gym.out('[data-testid="dead-out"]', 'the dead button fired');
+  });
+  $('[data-testid="revive-button"]').addEventListener('click', function () {
+    const d = $('[data-testid="dead-button"]');
+    d.style.pointerEvents = 'auto'; d.style.opacity = '1'; d.textContent = 'Now clickable';
+    Gym.out('[data-testid="dead-out"]', 'pointer-events restored');
+  });
+
+  /* moving target */
+  (function () {
+    const m = $('#mover');
+    let t = 0;
+    setInterval(function () {
+      t += 0.05;
+      m.style.left = (8 + Math.abs(Math.sin(t)) * 190) + 'px';
+      m.style.top = (34 + Math.sin(t * 2) * 24) + 'px';
+    }, 40);
+    m.addEventListener('click', function () {
+      Gym.out('[data-testid="mover-out"]', 'caught at left=' + m.style.left);
+      Gym.log('dom', 'moving target clicked');
+    });
+  })();
+
+  /* ---- § 05 lifecycle ---- */
+  $('[data-testid="spawn-temp"]').addEventListener('click', function () {
+    const slot = $('#temp-slot');
+    slot.innerHTML = '<div class="out" data-testid="temp-node" style="border-style:solid;border-color:var(--amber);background:var(--amber-wash);color:var(--amber);margin:0">Temporary node — gone in 6 seconds</div>';
+    Gym.log('dom', 'temporary node spawned');
+    setTimeout(function () {
+      slot.innerHTML = '<p class="tiny muted" style="margin:0">Node removed.</p>';
+      Gym.log('dom', 'temporary node removed');
+    }, 6000);
+  });
+
+  let swaps = 0;
+  $('[data-testid="detach-go"]').addEventListener('click', function () {
+    swaps++;
+    $('#detach-slot').innerHTML = '<button class="btn btn--ghost btn--sm" data-testid="detach-target">Replacement #' + swaps + '</button>';
+    Gym.out('[data-testid="detach-out"]', 'node replaced ' + swaps + ' time(s) — same test id, different element');
+    Gym.log('dom', 'node swapped');
+  });
+
+  let triples = 0;
+  $('[data-testid="triple-button"]').addEventListener('click', function () {
+    triples++;
+    this.textContent = 'Click me (' + triples + ')';
+    if (triples === 3) {
+      $('#triple-slot').innerHTML = '<div class="out" data-testid="triple-reward" style="margin:0;border-style:solid;border-color:var(--moss);background:var(--moss-wash);color:var(--moss)">Unlocked on the third click.</div>';
+      Gym.log('dom', 'third click reward revealed');
+    }
+  });
+
+  /* deep nesting */
+  (function () {
+    let html = '<button class="btn btn--ghost btn--sm" data-testid="deep-nested">20 levels down</button>';
+    for (let i = 20; i >= 1; i--) html = '<div class="wrap wrap--' + i + '">' + html + '</div>';
+    $('#deep-host').innerHTML = html;
+    $('[data-testid="deep-nested"]').addEventListener('click', function () {
+      let depth = 0, el = this;
+      while (el && el.id !== 'deep-host') { depth++; el = el.parentElement; }
+      Gym.out('[data-testid="deep-nest-out"]', 'that button is ' + depth + ' elements below #deep-host');
+    });
+  })();
+
+  /* template clone */
+  $('[data-testid="clone-template"]').addEventListener('click', function () {
+    const node = $('#tpl').content.cloneNode(true);
+    $('#tpl-slot').innerHTML = '';
+    $('#tpl-slot').appendChild(node);
+    Gym.log('dom', 'template cloned into the DOM');
+  });
+
+  /* intersection observer */
+  (function () {
+    const io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting && !$('[data-testid="scroll-revealed"]')) {
+          $('#io-sentinel').innerHTML = '<div class="out" data-testid="scroll-revealed" style="margin:0">Revealed by scrolling into view.</div>';
+          Gym.log('dom', 'scroll-revealed node rendered');
+        }
+      });
+    }, { root: $('#io-scroll'), threshold: 0.9 });
+    io.observe($('#io-sentinel'));
+  })();
+
+  /* ---- § 06 canvas ---- */
+  (function () {
+    const cv = $('#cv'), ctx = cv.getContext('2d');
+    const zones = [
+      { x: 20, y: 20, w: 100, h: 50, label: 'Accept', color: '#1B7355' },
+      { x: 140, y: 20, w: 100, h: 50, label: 'Hold', color: '#9E6C0B' },
+      { x: 260, y: 20, w: 80, h: 50, label: 'Reject', color: '#B0401D' },
+      { x: 20, y: 90, w: 320, h: 40, label: 'Sign off', color: '#1E6091' }
+    ];
+    function draw() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      zones.forEach(function (z) {
+        ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
+        ctx.fillStyle = '#fff'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(z.label, z.x + z.w / 2, z.y + z.h / 2 + 4);
+      });
+    }
+    draw();
+    cv.addEventListener('click', function (e) {
+      const r = cv.getBoundingClientRect();
+      const x = (e.clientX - r.left) * (cv.width / r.width);
+      const y = (e.clientY - r.top) * (cv.height / r.height);
+      const hit = zones.find(function (z) { return x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h; });
+      Gym.out('[data-testid="canvas-out"]',
+        'click at ' + Math.round(x) + ',' + Math.round(y) + ' → ' + (hit ? hit.label : 'no target'));
+      Gym.log('canvas', hit ? hit.label : 'miss');
+    });
+  })();
+
+  /* svg */
+  $$('[data-region]').forEach(function (c) {
+    c.addEventListener('click', function () {
+      Gym.out('[data-testid="svg-out"]',
+        c.dataset.region + ' selected · typeof className = ' + typeof c.className +
+        ' · baseVal = "' + c.className.baseVal + '"');
+      Gym.log('svg', c.dataset.region);
+    });
+  });
+
+  /* ---- § 07 properties ---- */
+  const stateful = $('[data-testid="stateful"]');
+  const STATES = ['draft', 'submitted', 'picked', 'packed', 'shipped'];
+  stateful.orderState = { step: 0, name: STATES[0], updatedAt: null };
+  stateful.addEventListener('click', function () {
+    const s = stateful.orderState;
+    s.step = (s.step + 1) % STATES.length;
+    s.name = STATES[s.step];
+    s.updatedAt = new Date().toISOString();
+    Gym.out('[data-testid="state-out"]',
+      'el.orderState = ' + JSON.stringify(s, null, 0) + '\n(no attribute changed — check the DOM)');
+    Gym.log('dom', 'orderState → ' + s.name);
+  });
+
+  $('[data-testid="compare-props"]').addEventListener('click', function () {
+    const i = $('#prop-input'), cb = $('[data-testid="prop-checkbox"]'), sel = $('#prop-select');
+    Gym.out('[data-testid="compare-out"]',
+      'input.getAttribute("value") = "' + i.getAttribute('value') + '"\n' +
+      'input.value                 = "' + i.value + '"\n' +
+      'checkbox has attribute      = ' + cb.hasAttribute('checked') + '\n' +
+      'checkbox.checked            = ' + cb.checked + '\n' +
+      'select first option [selected] = ' + sel.options[0].hasAttribute('selected') + '\n' +
+      'select.value                = "' + sel.value + '"');
+  });
+})();
+</script>
+<script>
+(function () {
+  const card = document.getElementById('inert-card');
+  const target = document.querySelector('[data-testid="inert-target"]');
+  const out = document.querySelector('[data-testid="inert-dom-out"]');
+  document.querySelector('[data-testid="make-inert"]').addEventListener('click', function () {
+    card.setAttribute('inert', '');
+    out.textContent = 'region inert';
+  });
+  target.addEventListener('click', function () { out.textContent = 'target clicked'; });
+  setTimeout(function () {
+    const b = document.getElementById('hydrate-btn');
+    b.setAttribute('data-testid', 'late-testid');
+    b.addEventListener('click', function () {
+      document.querySelector('[data-testid="hydrate-out"]').textContent = 'hydrated click';
+    });
+  }, 300);
+})();
+</script>
+</body>
+</html>

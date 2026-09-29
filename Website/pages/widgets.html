@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design-system widgets — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 13</p>
+    <h1>Design-system widgets</h1>
+    <p class="lede">
+      Combobox options live in a portal. Chips are not a &lt;select multiple&gt;.
+      OTP pastes into box 1. The wizard keeps state in the hash.
+    </p>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Combobox</h2></div>
+      <div class="card">
+        <span class="card__label">listbox rendered on document.body</span>
+        <div class="field combo">
+          <label for="combo-input">Destination port</label>
+          <input id="combo-input" data-testid="combo-input" role="combobox"
+                 aria-expanded="false" aria-controls="combo-list" aria-autocomplete="list"
+                 placeholder="Type to filter">
+        </div>
+        <div class="out" data-testid="combo-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Multi-select chips</h2></div>
+      <div class="card">
+        <span class="card__label">Remove by accessible name, not index</span>
+        <div class="chips" data-testid="chip-row"></div>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="btn btn--ghost" data-testid="chip-add-emea">Add EMEA</button>
+          <button class="btn btn--ghost" data-testid="chip-add-apac">Add APAC</button>
+          <button class="btn btn--ghost" data-testid="chip-add-amer">Add AMER</button>
+        </div>
+        <div class="out" data-testid="chip-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Split OTP</h2></div>
+      <div class="card">
+        <span class="card__label">Paste 482193 into box 1</span>
+        <div class="otp" data-testid="otp-group">
+          <input data-testid="otp-0" maxlength="1" inputmode="numeric" aria-label="Digit 1">
+          <input data-testid="otp-1" maxlength="1" inputmode="numeric" aria-label="Digit 2">
+          <input data-testid="otp-2" maxlength="1" inputmode="numeric" aria-label="Digit 3">
+          <input data-testid="otp-3" maxlength="1" inputmode="numeric" aria-label="Digit 4">
+          <input data-testid="otp-4" maxlength="1" inputmode="numeric" aria-label="Digit 5">
+          <input data-testid="otp-5" maxlength="1" inputmode="numeric" aria-label="Digit 6">
+        </div>
+        <div class="out" data-testid="otp-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Wizard + hash</h2></div>
+      <div class="card">
+        <div class="stepper" data-testid="wizard-steps">
+          <span data-step="1">1 Account</span>
+          <span data-step="2">2 Lane</span>
+          <span data-step="3">3 Confirm</span>
+        </div>
+        <div data-testid="wiz-step-1">
+          <div class="field"><label for="wiz-name">Desk name</label>
+          <input id="wiz-name" data-testid="wiz-name"></div>
+          <button class="btn" data-testid="wiz-next-1">Continue</button>
+        </div>
+        <div data-testid="wiz-step-2" hidden>
+          <div class="field"><label for="wiz-lane">Lane code</label>
+          <input id="wiz-lane" data-testid="wiz-lane"></div>
+          <div class="btnrow">
+            <button class="btn btn--ghost" data-testid="wiz-back-2">Back</button>
+            <button class="btn" data-testid="wiz-next-2">Continue</button>
+          </div>
+        </div>
+        <div data-testid="wiz-step-3" hidden>
+          <p>Confirm <strong data-testid="wiz-summary"></strong></p>
+          <div class="btnrow">
+            <button class="btn btn--ghost" data-testid="wiz-back-3">Back</button>
+            <button class="btn" data-testid="wiz-finish">Create desk</button>
+          </div>
+        </div>
+        <div class="out" data-testid="wiz-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Split button</h2></div>
+      <div class="card">
+        <div class="split" data-testid="split-export">
+          <button class="btn" data-testid="export-default">Export</button>
+          <button class="btn btn--ghost" data-testid="export-menu" aria-haspopup="menu" aria-label="More export formats">▾</button>
+        </div>
+        <div class="out" data-testid="export-out"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const ports = ['Rotterdam','Busan','Santos','Nhava Sheva','Valencia','Hamburg','Piraeus','Colombo','Felixstowe','Jebel Ali'];
+  const combo = document.querySelector('[data-testid="combo-input"]');
+  const comboOut = document.querySelector('[data-testid="combo-out"]');
+  let listEl = null;
+  function closeList() {
+    if (listEl) { listEl.remove(); listEl = null; }
+    combo.setAttribute('aria-expanded', 'false');
+  }
+  function openList() {
+    closeList();
+    const q = combo.value.toLowerCase();
+    listEl = document.createElement('div');
+    listEl.id = 'combo-list';
+    listEl.className = 'combo__list';
+    listEl.dataset.testid = 'combo-list';
+    listEl.setAttribute('role', 'listbox');
+    ports.filter(function (p) { return p.toLowerCase().indexOf(q) !== -1; }).forEach(function (p) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'combo__opt';
+      b.setAttribute('role', 'option');
+      b.textContent = p;
+      b.addEventListener('click', function () {
+        combo.value = p;
+        comboOut.textContent = 'chose ' + p;
+        Gym.log('combo', p);
+        closeList();
+      });
+      listEl.appendChild(b);
+    });
+    document.body.appendChild(listEl);
+    const r = combo.getBoundingClientRect();
+    listEl.style.position = 'fixed';
+    listEl.style.left = r.left + 'px';
+    listEl.style.top = (r.bottom + 4) + 'px';
+    listEl.style.width = r.width + 'px';
+    combo.setAttribute('aria-expanded', 'true');
+  }
+  combo.addEventListener('focus', openList);
+  combo.addEventListener('input', openList);
+  document.addEventListener('click', function (e) {
+    if (e.target !== combo && (!listEl || !listEl.contains(e.target))) closeList();
+  });
+
+  const chips = new Set();
+  const row = document.querySelector('[data-testid="chip-row"]');
+  const chipOut = document.querySelector('[data-testid="chip-out"]');
+  function paintChips() {
+    row.innerHTML = '';
+    chips.forEach(function (name) {
+      const el = document.createElement('span');
+      el.className = 'chip-item';
+      el.dataset.testid = 'chip-' + name.toLowerCase();
+      el.innerHTML = name + ' <button type="button" aria-label="Remove ' + name + '">×</button>';
+      el.querySelector('button').addEventListener('click', function () {
+        chips.delete(name); paintChips(); Gym.log('chip-remove', name);
+      });
+      row.appendChild(el);
+    });
+    chipOut.textContent = Array.from(chips).join(',') || '(none)';
+  }
+  [['emea','EMEA'],['apac','APAC'],['amer','AMER']].forEach(function (pair) {
+    document.querySelector('[data-testid="chip-add-' + pair[0] + '"]').addEventListener('click', function () {
+      chips.add(pair[1]); paintChips(); Gym.log('chip-add', pair[1]);
+    });
+  });
+  paintChips();
+
+  const boxes = [0,1,2,3,4,5].map(function (i) { return document.querySelector('[data-testid="otp-' + i + '"]'); });
+  const otpOut = document.querySelector('[data-testid="otp-out"]');
+  function otpValue() { return boxes.map(function (b) { return b.value; }).join(''); }
+  function writeOtp(digits) {
+    digits.slice(0, 6).split('').forEach(function (d, i) { boxes[i].value = d; });
+    otpOut.textContent = 'code ' + otpValue();
+    Gym.log('otp', otpValue());
+  }
+  boxes.forEach(function (box, i) {
+    box.addEventListener('input', function () {
+      box.value = box.value.replace(/\D/g, '').slice(-1);
+      if (box.value && i < 5) boxes[i + 1].focus();
+      otpOut.textContent = 'code ' + otpValue();
+    });
+    box.addEventListener('paste', function (e) {
+      e.preventDefault();
+      writeOtp((e.clipboardData.getData('text') || '').replace(/\D/g, ''));
+    });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+    });
+  });
+
+  const wizState = { name: '', lane: '' };
+  function wizStep() {
+    const m = location.hash.match(/step-([123])/);
+    return m ? Number(m[1]) : 1;
+  }
+  function showWiz() {
+    const s = wizStep();
+    [1,2,3].forEach(function (n) {
+      document.querySelector('[data-testid="wiz-step-' + n + '"]').hidden = n !== s;
+      const tab = document.querySelector('[data-step="' + n + '"]');
+      if (n === s) tab.setAttribute('aria-current', 'step'); else tab.removeAttribute('aria-current');
+    });
+    document.querySelector('[data-testid="wiz-name"]').value = wizState.name;
+    document.querySelector('[data-testid="wiz-lane"]').value = wizState.lane;
+    document.querySelector('[data-testid="wiz-summary"]').textContent = (wizState.name || '—') + ' / ' + (wizState.lane || '—');
+    document.querySelector('[data-testid="wiz-out"]').textContent = 'hash ' + (location.hash || '#step-1');
+  }
+  document.querySelector('[data-testid="wiz-next-1"]').addEventListener('click', function () {
+    wizState.name = document.querySelector('[data-testid="wiz-name"]').value;
+    location.hash = 'step-2';
+  });
+  document.querySelector('[data-testid="wiz-next-2"]').addEventListener('click', function () {
+    wizState.lane = document.querySelector('[data-testid="wiz-lane"]').value;
+    location.hash = 'step-3';
+  });
+  document.querySelector('[data-testid="wiz-back-2"]').addEventListener('click', function () { location.hash = 'step-1'; });
+  document.querySelector('[data-testid="wiz-back-3"]').addEventListener('click', function () { location.hash = 'step-2'; });
+  document.querySelector('[data-testid="wiz-finish"]').addEventListener('click', function () {
+    document.querySelector('[data-testid="wiz-out"]').textContent = 'created ' + wizState.name + '/' + wizState.lane;
+    Gym.log('wizard', 'finish');
+  });
+  addEventListener('hashchange', showWiz);
+  if (!location.hash) location.hash = 'step-1';
+  showWiz();
+
+  document.querySelector('[data-testid="export-default"]').addEventListener('click', function () {
+    document.querySelector('[data-testid="export-out"]').textContent = 'export csv';
+  });
+  document.querySelector('[data-testid="export-menu"]').addEventListener('click', function () {
+    document.querySelector('[data-testid="export-out"]').textContent = 'menu open';
+  });
+})();
+</script>
+</body>
+</html>

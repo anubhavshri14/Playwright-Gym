@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nested iframes — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 06</p>
+    <h1>Nested iframes</h1>
+    <p class="lede">
+      The deepest control on this page is four documents down. Getting to it means chaining four
+      <span class="code">frameLocator</span> calls, and the frames in between are named to mislead:
+      two siblings share a <span class="code">name</span>, one has no attributes at all, and one is
+      created after the page has already loaded.
+    </p>
+
+    <div class="card" style="margin-bottom:30px">
+      <span class="card__label">The path you're looking for</span>
+      <div class="out" style="border-style:solid">page
+ └─ iframe#depth-1          name="shellFrame"    src=level-1.html
+     └─ iframe#depth-2      name="innerFrame"    src=level-2.html
+         └─ iframe          (no name, no id)     src=level-3.html
+             └─ iframe#depth-4  name="innerFrame"  src=level-4.html
+                 └─ input[data-testid="deep-input"]
+                 └─ #shadow-root → button[data-testid="deep-confirm"]</div>
+      <p class="tiny muted" style="margin:10px 0 0">
+        Levels 2 and 4 both answer to <span class="code">innerFrame</span>. Selecting by name from the
+        top will find the wrong one — chain by position or by <span class="code">src</span> instead.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Four levels down</h2></div>
+
+      <iframe src="../frames/level-1.html" id="depth-1" name="shellFrame" height="560" title="Depth 1"></iframe>
+      <div class="out" data-testid="deep-relay" style="margin-top:12px"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Siblings sharing a name <span class="chip chip--trap">ambiguous</span></h2></div>
+      <p class="hint">
+        Both frames below are <span class="code">name="panel"</span> with identical markup. Only the
+        query string differs. <span class="code">page.frame({ name: 'panel' })</span> returns the first
+        one silently; <span class="code">frameLocator('iframe[src*="side=right"]')</span> is unambiguous.
+      </p>
+
+      <div class="grid grid--2">
+        <div>
+          <p class="frame-note">iframe[name="panel"] · ?side=left</p>
+          <iframe src="../frames/sibling.html?side=left" name="panel" height="210" title="Left panel"></iframe>
+        </div>
+        <div>
+          <p class="frame-note">iframe[name="panel"] · ?side=right</p>
+          <iframe src="../frames/sibling.html?side=right" name="panel" height="210" title="Right panel"></iframe>
+        </div>
+      </div>
+      <div class="out" data-testid="sibling-relay" style="margin-top:12px"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>srcdoc, injected, and shadow-hosted</h2></div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <span class="card__label">srcdoc <span class="chip chip--trap">about:blank</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">No URL to match on. Locate it by its id or by its position among the iframes.</p>
+          <iframe id="srcdoc-frame" height="150" title="Inline document" srcdoc='
+            <body style="font:13px/1.5 system-ui;margin:0;padding:12px;background:#F4F8FB;color:#0E2038">
+              <div style="font:600 11px/1 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;background:#0E2038;color:#fff;padding:3px 7px;border-radius:2px;display:inline-block">srcdoc</div>
+              <p style="margin:10px 0">Written inline in the parent HTML.</p>
+              <button data-testid="srcdoc-button" style="font:12px ui-monospace,monospace;padding:6px 11px;border:1px solid #0E2038;background:#0E2038;color:#fff;border-radius:3px;cursor:pointer">Count me</button>
+              <span data-testid="srcdoc-count" style="font:12px ui-monospace,monospace;margin-left:8px">0</span>
+              <script>
+                var n = 0;
+                document.querySelector("[data-testid=srcdoc-button]").addEventListener("click", function () {
+                  n++;
+                  document.querySelector("[data-testid=srcdoc-count]").textContent = n;
+                  parent.postMessage({ __gym: "log", kind: "frame", detail: "srcdoc clicked " + n }, "*");
+                });
+              </script>
+            </body>'></iframe>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Injected late <span class="chip chip--time">2.5 s</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">The iframe element does not exist at load. Wait for it, then wait for its document.</p>
+          <div id="inject-slot" data-testid="inject-slot">
+            <p class="tiny muted"><span class="spinner"></span> Frame not created yet…</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Inside a shadow root <span class="chip chip--trap">pierce, then enter</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            Locator chains cross shadow boundaries automatically, so
+            <span class="code">frameLocator</span> still resolves — but the frame has no light-DOM parent.
+          </p>
+          <div id="shadow-host" data-testid="shadow-frame-host"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Frames in table cells</h2></div>
+      <p class="hint">Each row embeds its own document. Same widget, three instances — scope by row before you touch anything inside.</p>
+
+      <div class="card">
+        <div class="tbl-wrap">
+          <table class="data" data-testid="frame-table">
+            <thead><tr><th style="width:120px">Site</th><th>Live console</th></tr></thead>
+            <tbody>
+              <tr data-site="pune"><td class="mono">IN-W1</td><td style="padding:6px"><iframe src="../frames/sibling.html?side=IN-W1" height="150" title="IN-W1 console"></iframe></td></tr>
+              <tr data-site="lyon"><td class="mono">FR-W3</td><td style="padding:6px"><iframe src="../frames/sibling.html?side=FR-W3" height="150" title="FR-W3 console"></iframe></td></tr>
+              <tr data-site="osaka"><td class="mono">JP-W2</td><td style="padding:6px"><iframe src="../frames/sibling.html?side=JP-W2" height="150" title="JP-W2 console"></iframe></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  /* relay messages from any depth */
+  window.addEventListener('message', function (e) {
+    if (!e.data) return;
+    if (e.data.__gym === 'deep') {
+      Gym.out('[data-testid="deep-relay"]', 'level ' + e.data.depth + ' reported: ' + e.data.value);
+    }
+    if (e.data.__gym === 'sibling') {
+      Gym.out('[data-testid="sibling-relay"]', e.data.side + ' panel → ' + e.data.value);
+    }
+  });
+
+  /* late-injected frame */
+  setTimeout(function () {
+    const slot = document.getElementById('inject-slot');
+    slot.innerHTML = '';
+    const f = document.createElement('iframe');
+    f.src = '../frames/sibling.html?side=injected';
+    f.id = 'late-frame';
+    f.title = 'Injected frame';
+    f.height = '150';
+    slot.appendChild(f);
+    Gym.log('frame', 'late frame injected');
+  }, 2500);
+
+  /* frame inside a shadow root */
+  (function () {
+    const host = document.getElementById('shadow-host');
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML =
+      '<style>iframe{width:100%;height:150px;border:1px solid #C6D5E1;border-radius:3px;background:#fff}</style>' +
+      '<iframe src="../frames/sibling.html?side=shadow" title="Shadow-hosted frame"></iframe>';
+  })();
+})();
+</script>
+</body>
+</html>

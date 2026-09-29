@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Origins &amp; permissions — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 14</p>
+    <h1>Origins &amp; permissions</h1>
+    <p class="lede">
+      The card widget is served from <span class="code">http://127.0.0.1:4174</span>.
+      That is a different origin than <span class="code">http://localhost:4173</span>.
+      <span class="code">page.getByTestId('card-number')</span> will not see it.
+    </p>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Cross-origin payment widget</h2></div>
+      <div class="card">
+        <span class="card__label">iframe → 127.0.0.1:{port+1}</span>
+        <iframe class="pay-frame" data-testid="pay-frame" title="Card widget"></iframe>
+        <div class="out" data-testid="pay-out">waiting for token</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Sandboxed frame</h2></div>
+      <div class="card">
+        <span class="card__label">sandbox without allow-modals</span>
+        <p class="hint">frameLocator works. alert() inside does not. Capture dialog on the wrong page and the test hangs.</p>
+        <iframe data-testid="sandbox-frame" title="Sandboxed notes" sandbox="allow-scripts"
+                src="../frames/sandbox.html" style="width:100%;height:140px;border:1px solid var(--line);border-radius:3px;background:#fff"></iframe>
+        <div class="out" data-testid="sandbox-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Permissions</h2></div>
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Geolocation</span>
+          <p class="hint">Grant <span class="code">geolocation</span> and set a position on the context before clicking.</p>
+          <button class="btn" data-testid="geo-ask">Read position</button>
+          <div class="geo-badge" data-testid="geo-out">no fix</div>
+        </div>
+        <div class="card">
+          <span class="card__label">Clipboard</span>
+          <p class="hint">Grant <span class="code">clipboard-read</span> / write. Paste into the field after copying.</p>
+          <div class="btnrow" style="margin-top:0">
+            <button class="btn btn--ghost" data-testid="clip-write">Copy token</button>
+            <button class="btn btn--ghost" data-testid="clip-read">Read clipboard</button>
+          </div>
+          <input data-testid="clip-input" placeholder="paste here">
+          <div class="out" data-testid="clip-out"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const frame = document.querySelector('[data-testid="pay-frame"]');
+  frame.src = Gym.widgetOrigin() + '/frames/pay-widget.html';
+  const payOut = document.querySelector('[data-testid="pay-out"]');
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.__gym !== 'pay') return;
+    payOut.textContent = 'token ' + e.data.token + ' last4=' + e.data.last4;
+    Gym.log('pay', e.data.token);
+  });
+
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.__gym !== 'sandbox') return;
+    document.querySelector('[data-testid="sandbox-out"]').textContent = e.data.detail;
+  });
+
+  document.querySelector('[data-testid="geo-ask"]').addEventListener('click', function () {
+    const out = document.querySelector('[data-testid="geo-out"]');
+    if (!navigator.geolocation) { out.textContent = 'no geolocation API'; return; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      out.textContent = pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4);
+      Gym.log('geo', out.textContent);
+    }, function (err) {
+      out.textContent = 'denied: ' + err.message;
+    });
+  });
+
+  document.querySelector('[data-testid="clip-write"]').addEventListener('click', async function () {
+    const token = 'gym-clip-' + Date.now().toString(36);
+    await navigator.clipboard.writeText(token);
+    document.querySelector('[data-testid="clip-out"]').textContent = 'wrote ' + token;
+    Gym.log('clipboard', 'write');
+  });
+  document.querySelector('[data-testid="clip-read"]').addEventListener('click', async function () {
+    const text = await navigator.clipboard.readText();
+    document.querySelector('[data-testid="clip-input"]').value = text;
+    document.querySelector('[data-testid="clip-out"]').textContent = 'read ' + text;
+    Gym.log('clipboard', 'read');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Panel</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame" data-root="../">
+  <span class="depth-tag" data-testid="panel-tag">panel</span>
+  <div class="field" style="max-width:260px;margin-bottom:8px">
+    <label for="p-note">Note</label>
+    <input id="p-note" type="text" data-testid="panel-input" placeholder="identical in both panels">
+  </div>
+  <button class="btn btn--sm" data-testid="panel-send">Send to parent</button>
+  <div class="out" data-testid="panel-out" style="margin-top:8px"></div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  var side = new URLSearchParams(location.search).get('side') || 'unlabelled';
+  document.querySelector('[data-testid="panel-tag"]').textContent = 'panel · ' + side;
+  document.title = 'Panel ' + side;
+  document.body.dataset.side = side;
+
+  document.querySelector('[data-testid="panel-send"]').addEventListener('click', function () {
+    var v = document.querySelector('[data-testid="panel-input"]').value || '(empty)';
+    document.querySelector('[data-testid="panel-out"]').textContent = side + ' sent "' + v + '"';
+    try { window.top.postMessage({ __gym: 'sibling', side: side, value: v }, '*'); } catch (e) {}
+    Gym.log('frame', side + ' panel sent a value');
+  });
+})();
+</script>
+</body>
+</html>

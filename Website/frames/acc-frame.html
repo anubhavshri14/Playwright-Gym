@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Embedded configuration</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame" data-root="../">
+  <span class="depth-tag">config frame</span>
+
+  <div class="acc" style="margin-bottom:8px">
+    <button class="acc__head" aria-expanded="false" data-testid="frame-acc-1">
+      <span class="acc__caret">▸</span><span>Connection</span>
+    </button>
+    <div class="acc__panel" data-testid="frame-acc-panel-1">
+      <div class="field">
+        <label for="cf-host">Host</label>
+        <input id="cf-host" type="text" data-testid="frame-host-input" placeholder="ingest.internal">
+      </div>
+      <div class="field">
+        <label for="cf-port">Port</label>
+        <input id="cf-port" type="number" value="8443" data-testid="frame-port-input">
+      </div>
+      <button class="btn btn--sm" data-testid="frame-save">Save connection</button>
+      <div class="out" data-testid="frame-acc-out"></div>
+    </div>
+  </div>
+
+  <div class="acc">
+    <button class="acc__head" aria-expanded="false" data-testid="frame-acc-2">
+      <span class="acc__caret">▸</span><span>Retries</span>
+    </button>
+    <div class="acc__panel" data-testid="frame-acc-panel-2">
+      <label class="check"><input type="checkbox" data-testid="frame-retry-cb"> Retry failed batches</label>
+      <label class="check"><input type="checkbox" data-testid="frame-dlq-cb" checked> Send to dead-letter queue</label>
+    </div>
+  </div>
+
+<script src="../assets/app.js"></script>
+<script>
+document.addEventListener('click', function (e) {
+  var h = e.target.closest('.acc__head');
+  if (h) {
+    var p = h.nextElementSibling, open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', String(!open));
+    p.classList.toggle('is-open', !open);
+    return;
+  }
+  if (e.target.matches('[data-testid="frame-save"]')) {
+    var host = document.querySelector('[data-testid="frame-host-input"]').value || '(none)';
+    var port = document.querySelector('[data-testid="frame-port-input"]').value;
+    document.querySelector('[data-testid="frame-acc-out"]').textContent = 'saved ' + host + ':' + port;
+    Gym.log('frame', 'config saved ' + host + ':' + port);
+  }
+});
+</script>
+</body>
+</html>

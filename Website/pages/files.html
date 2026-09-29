@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upload &amp; download — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 05</p>
+    <h1>Upload &amp; download</h1>
+    <p class="lede">
+      Six upload surfaces and six ways to get a file back out. The awkward ones are the invisible
+      input behind a styled button, the drop zone that never renders an
+      <span class="code">&lt;input&gt;</span> at all, and the download link that does not exist until
+      a job finishes.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Upload surfaces</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Plain inputs</span>
+
+          <div class="field">
+            <label for="up-single">Single file</label>
+            <input id="up-single" type="file" data-testid="upload-single">
+          </div>
+
+          <div class="field">
+            <label for="up-multi">Multiple files</label>
+            <input id="up-multi" type="file" multiple data-testid="upload-multiple">
+          </div>
+
+          <div class="field">
+            <label for="up-typed">CSV only, 2 MB cap <span class="chip chip--trap">validated</span></label>
+            <input id="up-typed" type="file" accept=".csv,text/csv" data-testid="upload-csv">
+          </div>
+
+          <div class="field">
+            <label for="up-dir">Whole folder</label>
+            <input id="up-dir" type="file" webkitdirectory directory multiple data-testid="upload-directory">
+          </div>
+
+          <ul class="filelist" id="plain-list" data-testid="plain-file-list"></ul>
+          <div class="out" data-testid="plain-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Hidden input behind a button <span class="chip chip--trap">display:none</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">
+            Clicking the button opens the OS picker, which a test cannot drive. Target the input
+            itself with <span class="code">setInputFiles()</span> — it works even though the element
+            is not visible.
+          </p>
+          <input type="file" id="up-hidden" style="display:none" multiple data-testid="upload-hidden">
+          <button class="btn" id="up-hidden-btn" data-testid="upload-hidden-button">Choose attachments…</button>
+          <ul class="filelist" id="hidden-list" data-testid="hidden-file-list"></ul>
+
+          <div style="margin-top:18px">
+            <span class="card__label">Drop zone <span class="chip chip--trap">no input element</span></span>
+            <p class="tiny muted" style="margin:0 0 10px">
+              Accepts <span class="code">DataTransfer</span> only. Build one in
+              <span class="code">page.evaluateHandle</span> and dispatch a drop event.
+            </p>
+            <div class="drop" id="dropzone" data-testid="dropzone">Drop files here</div>
+            <p class="tiny muted">.exe and application/x-msdownload are rejected.</p>
+            <ul class="filelist" id="drop-list" data-testid="drop-file-list"></ul>
+            <div class="out" data-testid="drop-out"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Upload with progress <span class="chip chip--time">~2.4 s</span></h2></div>
+      <p class="hint">
+        Pick a file, then start the transfer. The button disables, a progress bar advances, and a
+        success panel replaces it. Assert on the end state, not the bar width.
+      </p>
+
+      <div class="card">
+        <div class="inline">
+          <div class="field" style="flex:1">
+            <label for="up-progress">Payload</label>
+            <input id="up-progress" type="file" data-testid="upload-progress-input">
+          </div>
+          <button class="btn" id="up-start" disabled data-testid="upload-start">Start upload</button>
+          <button class="btn btn--ghost" id="up-cancel" disabled data-testid="upload-cancel">Cancel</button>
+        </div>
+        <div class="bar" id="up-bar"><i></i></div>
+        <div class="out" data-testid="progress-out"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Downloads</h2></div>
+      <p class="hint">
+        Wrap each of these in <span class="code">page.waitForEvent('download')</span>. The generated
+        ones never touch the network — the bytes are made in the browser and handed to a temporary
+        object URL that is revoked straight after.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Static files</span>
+          <div class="btnrow">
+            <a class="btn btn--ghost" href="../assets/downloads/shipments.csv" download data-testid="download-csv">shipments.csv</a>
+            <a class="btn btn--ghost" href="../assets/downloads/runbook.txt" download data-testid="download-txt">runbook.txt</a>
+            <a class="btn btn--ghost" href="../assets/downloads/config.json" download data-testid="download-json">config.json</a>
+            <a class="btn btn--ghost" href="../assets/downloads/network.svg" download data-testid="download-svg">network.svg</a>
+            <a class="btn btn--ghost" href="../assets/downloads/bundle.zip" download data-testid="download-zip">bundle.zip</a>
+          </div>
+          <p class="tiny muted" style="margin:12px 0 0">
+            <a href="../assets/downloads/runbook.txt" data-testid="open-inline">This link has no <span class="code">download</span> attribute</a>
+            — the browser navigates instead of downloading. Useful for practising the difference.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Generated in the browser</span>
+          <div class="btnrow">
+            <button class="btn btn--ghost" data-testid="download-blob-csv">Export current time as CSV</button>
+            <button class="btn btn--ghost" data-testid="download-blob-json">Export session JSON</button>
+            <button class="btn btn--ghost" data-testid="download-random">Random filename</button>
+          </div>
+          <div class="out" data-testid="blob-out"></div>
+
+          <div style="margin-top:18px">
+            <span class="card__label">Deferred link <span class="chip chip--time">appears after 3 s</span></span>
+            <button class="btn" id="gen-report" data-testid="generate-report">Generate report</button>
+            <div id="report-slot" data-testid="report-slot" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Files inside a frame</h2></div>
+      <p class="hint">
+        The upload input and the download link both live in the frame. The download event still
+        surfaces on the <em>page</em>, not the frame — a common source of confusion.
+      </p>
+
+      <div class="card">
+        <p class="frame-note">iframe#file-frame</p>
+        <iframe src="../frames/file-frame.html" id="file-frame" name="fileFrame" height="250" title="Files in a frame"></iframe>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const $ = function (s) { return document.querySelector(s); };
+
+  function fmt(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  }
+
+  function listFiles(target, files, testid) {
+    const arr = Array.from(files);
+    target.innerHTML = arr.map(function (f) {
+      return '<li data-testid="' + testid + '">' +
+        '<span>' + (f.webkitRelativePath || f.name) + '</span>' +
+        '<span class="muted">' + (f.type || 'unknown') + '</span>' +
+        '<span class="muted">' + fmt(f.size) + '</span></li>';
+    }).join('');
+    return arr;
+  }
+
+  /* ---- § 01 plain inputs ---- */
+  ['up-single', 'up-multi', 'up-dir'].forEach(function (id) {
+    $('#' + id).addEventListener('change', function (e) {
+      const arr = listFiles($('#plain-list'), e.target.files, 'plain-file');
+      Gym.out('[data-testid="plain-out"]', arr.length + ' file(s) staged from #' + id +
+        '\ntotal ' + fmt(arr.reduce(function (s, f) { return s + f.size; }, 0)));
+      Gym.log('upload', id + ' → ' + arr.length + ' file(s)');
+    });
+  });
+
+  $('#up-typed').addEventListener('change', function (e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    const okType = /\.csv$/i.test(f.name) || f.type === 'text/csv';
+    const okSize = f.size <= 2 * 1024 * 1024;
+    if (!okType || !okSize) {
+      e.target.value = '';
+      Gym.out('[data-testid="plain-out"]',
+        !okType ? 'Rejected: ' + f.name + ' is not a CSV. Choose a .csv file.'
+                : 'Rejected: ' + f.name + ' is ' + fmt(f.size) + '. The cap is 2 MB.');
+      Gym.log('upload', 'rejected ' + f.name);
+      return;
+    }
+    listFiles($('#plain-list'), e.target.files, 'plain-file');
+    Gym.out('[data-testid="plain-out"]', 'Accepted ' + f.name + ' (' + fmt(f.size) + ')');
+  });
+
+  /* ---- hidden input ---- */
+  $('#up-hidden-btn').addEventListener('click', function () { $('#up-hidden').click(); });
+  $('#up-hidden').addEventListener('change', function (e) {
+    const arr = listFiles($('#hidden-list'), e.target.files, 'hidden-file');
+    $('#up-hidden-btn').textContent = arr.length + ' attachment' + (arr.length === 1 ? '' : 's') + ' selected';
+    Gym.log('upload', 'hidden input → ' + arr.length);
+  });
+
+  /* ---- drop zone ---- */
+  const dz = $('#dropzone');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('is-over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('is-over'); });
+  });
+  dz.addEventListener('drop', function (e) {
+    const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : [];
+    const accepted = [];
+    const rejected = [];
+    Array.from(files).forEach(function (f) {
+      const bad = /\.exe$/i.test(f.name) || f.type === 'application/x-msdownload';
+      if (bad) rejected.push(f.name); else accepted.push(f);
+    });
+    const arr = listFiles($('#drop-list'), accepted, 'drop-file');
+    const msg = (arr.length ? arr.length + ' file(s) received' : 'Nothing usable in that drop') +
+      (rejected.length ? ' · rejected ' + rejected.join(',') : '');
+    dz.textContent = msg;
+    const o = document.querySelector('[data-testid="drop-out"]');
+    if (o) o.textContent = msg;
+    Gym.log('upload', 'dropzone → ' + msg);
+  });
+
+  /* ---- § 02 progress ---- */
+  let timer = null;
+  const startBtn = $('#up-start'), cancelBtn = $('#up-cancel'), bar = $('#up-bar').firstElementChild;
+
+  $('#up-progress').addEventListener('change', function (e) {
+    startBtn.disabled = !e.target.files.length;
+    bar.style.width = '0%';
+    Gym.out('[data-testid="progress-out"]', e.target.files.length ? 'Ready: ' + e.target.files[0].name : '');
+  });
+
+  startBtn.addEventListener('click', function () {
+    const f = $('#up-progress').files[0];
+    if (!f) return;
+    let p = 0;
+    startBtn.disabled = true; cancelBtn.disabled = false;
+    Gym.log('upload', 'transfer started');
+    timer = setInterval(function () {
+      p += 4;
+      bar.style.width = Math.min(p, 100) + '%';
+      Gym.out('[data-testid="progress-out"]', 'Uploading ' + f.name + ' — ' + Math.min(p, 100) + '%');
+      if (p >= 100) {
+        clearInterval(timer); timer = null;
+        cancelBtn.disabled = true;
+        Gym.out('[data-testid="progress-out"]',
+          'Uploaded ' + f.name + ' (' + fmt(f.size) + ')\nstored as ' + Gym.rid('obj') + '\nchecksum ' + Math.random().toString(16).slice(2, 18));
+        Gym.log('upload', 'transfer complete');
+        const done = document.createElement('div');
+        done.dataset.testid = 'upload-success';
+        done.className = 'out';
+        done.style.cssText = 'border-style:solid;border-color:var(--moss);background:var(--moss-wash);color:var(--moss)';
+        done.textContent = 'Upload complete';
+        $('#up-bar').after(done);
+      }
+    }, 90);
+  });
+
+  cancelBtn.addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; }
+    bar.style.width = '0%';
+    startBtn.disabled = false; cancelBtn.disabled = true;
+    Gym.out('[data-testid="progress-out"]', 'Transfer cancelled. Nothing was stored.');
+    Gym.log('upload', 'transfer cancelled');
+  });
+
+  /* ---- § 03 blob downloads ---- */
+  function saveBlob(name, type, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    Gym.out('[data-testid="blob-out"]', 'served ' + name + ' (' + text.length + ' bytes) from an object URL');
+    Gym.log('download', name);
+  }
+
+  $('[data-testid="download-blob-csv"]').addEventListener('click', function () {
+    const rows = [['metric', 'value'], ['generated_at', new Date().toISOString()],
+                  ['user_agent_len', navigator.userAgent.length], ['viewport', innerWidth + 'x' + innerHeight]];
+    saveBlob('snapshot.csv', 'text/csv', rows.map(function (r) { return r.join(','); }).join('\n'));
+  });
+
+  $('[data-testid="download-blob-json"]').addEventListener('click', function () {
+    saveBlob('session.json', 'application/json', JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      page: location.pathname,
+      events: document.querySelectorAll('[data-testid="log-row"]').length
+    }, null, 2));
+  });
+
+  $('[data-testid="download-random"]').addEventListener('click', function () {
+    saveBlob(Gym.rid('export') + '.txt', 'text/plain',
+      'This filename changes on every click.\nMatch it with a regex, not a literal.\n' + new Date());
+  });
+
+  /* ---- deferred download link ---- */
+  $('#gen-report').addEventListener('click', function () {
+    const slot = $('#report-slot'), btn = this;
+    btn.disabled = true;
+    slot.innerHTML = '<p class="tiny muted" data-testid="report-pending"><span class="spinner"></span> Compiling 57 shipments…</p>';
+    setTimeout(function () {
+      const body = 'ref,destination,status\nSHP-4100,Rotterdam,In transit\nSHP-4101,Busan,Customs\nSHP-4102,Santos,Delivered\n';
+      const url = URL.createObjectURL(new Blob([body], { type: 'text/csv' }));
+      slot.innerHTML = '<a class="btn" href="' + url + '" download="report-' + Date.now() + '.csv" data-testid="report-link">Download report.csv</a>';
+      btn.disabled = false;
+      Gym.log('download', 'deferred link rendered');
+    }, 3000);
+  });
+})();
+</script>
+</body>
+</html>

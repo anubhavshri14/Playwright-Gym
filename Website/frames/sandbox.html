@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sandbox</title>
+<style>
+  body { margin: 0; font: 14px ui-sans-serif, system-ui; color: #0E2038; padding: 12px; background: #fff; }
+  button { font: 12px ui-monospace, monospace; padding: 6px 10px; }
+  p { font-size: 12px; color: #4A6480; }
+</style>
+</head>
+<body>
+<p>This frame is sandboxed. The alert button should not produce a page dialog.</p>
+<button data-testid="sandbox-alert">Try alert</button>
+<button data-testid="sandbox-ping">Ping parent</button>
+<script>
+document.querySelector('[data-testid="sandbox-alert"]').addEventListener('click', function () {
+  try { alert('if you see this, sandbox failed'); }
+  catch (err) {
+    try { parent.postMessage({ __gym: 'sandbox', detail: 'alert blocked' }, '*'); } catch (_) {}
+  }
+});
+document.querySelector('[data-testid="sandbox-ping"]').addEventListener('click', function () {
+  try { parent.postMessage({ __gym: 'sandbox', detail: 'ping' }, '*'); } catch (_) {}
+});
+</script>
+</body>
+</html>

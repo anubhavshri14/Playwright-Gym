@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Depth 4</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame depth-4" data-root="../">
+  <span class="depth-tag">Depth 4 · target</span>
+
+  <div class="inline">
+    <div class="field" style="flex:1;min-width:180px">
+      <label for="d4-input">Release token</label>
+      <input id="d4-input" type="text" data-testid="deep-input" placeholder="type here">
+    </div>
+    <div id="d4-shadow"></div>
+  </div>
+
+  <div class="out" data-testid="deep-out" style="margin-top:8px"></div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  var host = document.getElementById('d4-shadow');
+  var root = host.attachShadow({ mode: 'open' });
+  root.innerHTML =
+    '<style>' +
+    'button{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;padding:7px 13px;border:1px solid #0E2038;' +
+    'background:#0E2038;color:#fff;border-radius:3px;cursor:pointer}' +
+    'button:hover{opacity:.86}' +
+    '</style>' +
+    '<button data-testid="deep-confirm">Confirm release</button>';
+
+  root.querySelector('button').addEventListener('click', function () {
+    var v = document.getElementById('d4-input').value || '(empty)';
+    document.querySelector('[data-testid="deep-out"]').textContent =
+      'released with token ' + v + ' at ' + new Date().toTimeString().slice(0, 8);
+    try {
+      window.top.postMessage({ __gym: 'deep', depth: 4, value: v }, '*');
+    } catch (e) {}
+    Gym.log('frame', 'depth 4 confirmed → ' + v);
+  });
+})();
+</script>
+</body>
+</html>

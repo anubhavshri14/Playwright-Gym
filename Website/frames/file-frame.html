@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Files in a frame</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame" data-root="../">
+  <span class="depth-tag">file frame</span>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap">
+    <div style="flex:1;min-width:220px">
+      <div class="field">
+        <label for="ff-input">Attach evidence</label>
+        <input id="ff-input" type="file" multiple data-testid="frame-upload">
+      </div>
+      <ul class="filelist" data-testid="frame-file-list" id="ff-list"></ul>
+    </div>
+
+    <div style="flex:1;min-width:220px">
+      <span class="field__label">Download from inside the frame</span>
+      <div class="btnrow" style="margin-top:0">
+        <a class="btn btn--ghost btn--sm" href="../assets/downloads/config.json" download data-testid="frame-download-static">config.json</a>
+        <button class="btn btn--ghost btn--sm" data-testid="frame-download-blob">manifest.txt</button>
+      </div>
+      <div class="out" data-testid="frame-file-out"></div>
+    </div>
+  </div>
+
+<script src="../assets/app.js"></script>
+<script>
+document.getElementById('ff-input').addEventListener('change', function (e) {
+  var files = Array.from(e.target.files);
+  document.getElementById('ff-list').innerHTML = files.map(function (f) {
+    return '<li data-testid="frame-file"><span>' + f.name + '</span><span class="muted">' + f.size + ' B</span></li>';
+  }).join('');
+  document.querySelector('[data-testid="frame-file-out"]').textContent = files.length + ' file(s) attached inside the frame';
+  Gym.log('upload', 'frame upload → ' + files.length);
+});
+
+document.querySelector('[data-testid="frame-download-blob"]').addEventListener('click', function () {
+  var url = URL.createObjectURL(new Blob(['generated inside an iframe at ' + new Date().toISOString() + '\n'], { type: 'text/plain' }));
+  var a = document.createElement('a');
+  a.href = url; a.download = 'manifest.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  document.querySelector('[data-testid="frame-file-out"]').textContent = 'manifest.txt served from the frame';
+  Gym.log('download', 'manifest.txt (from frame)');
+});
+</script>
+</body>
+</html>

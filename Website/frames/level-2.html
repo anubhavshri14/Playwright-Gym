@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Depth 2</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame depth-2" data-root="../">
+  <span class="depth-tag">Depth 2 · innerFrame</span>
+  <h3 style="margin-bottom:6px">Region router</h3>
+  <p class="tiny muted" style="margin:0 0 10px">
+    The next frame carries no <code class="code">id</code> and no <code class="code">name</code>.
+    Match it by <code class="code">src</code>, by <code class="code">title</code>, or by index.
+  </p>
+
+  <div class="inline" style="margin-bottom:12px">
+    <div class="field" style="width:150px">
+      <label for="d2-region">Region</label>
+      <select id="d2-region" data-testid="depth2-region">
+        <option>EMEA</option><option>APAC</option><option>AMER</option>
+      </select>
+    </div>
+    <button class="btn btn--sm btn--ghost" data-testid="depth2-apply">Apply</button>
+    <span class="chip" data-testid="depth2-state">idle</span>
+  </div>
+
+  <p class="frame-note">↓ iframe (no id, no name) title="Depth 3"</p>
+  <iframe src="level-3.html" height="270" title="Depth 3"></iframe>
+
+<script src="../assets/app.js"></script>
+<script>
+document.querySelector('[data-testid="depth2-apply"]').addEventListener('click', function () {
+  var v = document.querySelector('[data-testid="depth2-region"]').value;
+  document.querySelector('[data-testid="depth2-state"]').textContent = v + ' applied';
+  Gym.log('frame', 'depth 2 applied ' + v);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lists that lie — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 10</p>
+    <h1>Lists that lie</h1>
+    <p class="lede">
+      Ten thousand rows, about twenty in the DOM. Skeleton rows reuse the real test id.
+      An A/B flag wraps each row. Scroll the container, not the window.
+    </p>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Virtualised board</h2></div>
+      <div class="card">
+        <span class="card__label">Only mounted rows exist <span class="chip chip--trap">nth() lies</span></span>
+        <div class="inline" style="margin-bottom:12px">
+          <div class="field" style="flex:1">
+            <label for="virt-search">Filter</label>
+            <input id="virt-search" type="search" data-testid="virt-search" placeholder="ref, port or carrier">
+          </div>
+          <button class="btn btn--ghost" data-testid="virt-ab">Toggle A/B wrapper</button>
+          <button class="btn btn--ghost" data-testid="virt-jump">Jump to SHP-9800</button>
+        </div>
+        <div class="ab-wrap" data-testid="virt-region" data-variant="a">
+          <div class="virt-port" data-testid="virt-viewport" role="list" aria-label="Virtual shipments"></div>
+        </div>
+        <div class="out" data-testid="virt-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Skeleton vs empty vs error</h2></div>
+      <div class="card">
+        <span class="card__label">Three UIs, one container</span>
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn btn--ghost" data-testid="state-load">Show loading</button>
+          <button class="btn btn--ghost" data-testid="state-empty">Show empty</button>
+          <button class="btn btn--ghost" data-testid="state-error">Show error</button>
+          <button class="btn" data-testid="state-ready">Show rows</button>
+        </div>
+        <div data-testid="state-box" class="out" role="status">idle</div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const ROW = 36, COUNT = 10000, BUFFER = 6;
+  const ports = ['Rotterdam','Busan','Santos','Nhava Sheva','Valencia','Hamburg','Piraeus','Colombo'];
+  const carriers = ['Maersk','ONE','Hapag','MSC','Evergreen'];
+  const statuses = ['In transit','Customs','Delivered','Delayed','Hold'];
+  const all = [];
+  for (let i = 0; i < COUNT; i++) {
+    const ref = 'SHP-' + String(1000 + i).padStart(4, '0');
+    all.push({ ref: ref, dest: ports[i % ports.length], carrier: carriers[i % carriers.length], status: statuses[i % statuses.length] });
+  }
+  let query = '', variant = 'a';
+  const port = document.querySelector('[data-testid="virt-viewport"]');
+  const wrap = document.querySelector('[data-testid="virt-region"]');
+  const out = document.querySelector('[data-testid="virt-out"]');
+
+  function filtered() {
+    if (!query) return all;
+    const q = query.toLowerCase();
+    return all.filter(function (r) { return (r.ref + r.dest + r.carrier).toLowerCase().indexOf(q) !== -1; });
+  }
+  function render() {
+    const rows = filtered();
+    const scroll = port.scrollTop;
+    const start = Math.max(0, Math.floor(scroll / ROW) - BUFFER);
+    const end = Math.min(rows.length, Math.ceil((scroll + port.clientHeight) / ROW) + BUFFER);
+    const inner = document.createElement('div');
+    inner.className = 'virt-inner';
+    inner.style.height = (rows.length * ROW) + 'px';
+    for (let i = start; i < end; i++) {
+      const r = rows[i];
+      const row = document.createElement('div');
+      row.className = 'virt-row';
+      row.style.top = (i * ROW) + 'px';
+      row.dataset.testid = 'virt-row';
+      row.dataset.ref = r.ref;
+      row.setAttribute('role', 'listitem');
+      row.innerHTML = '<span>' + r.ref + '</span><span>' + r.dest + '</span><span>' + r.carrier + '</span><span>' + r.status + '</span>';
+      if (variant === 'b') {
+        const extra = document.createElement('div');
+        extra.setAttribute('data-ab', 'wrap');
+        extra.appendChild(row);
+        extra.style.position = 'absolute';
+        extra.style.top = (i * ROW) + 'px';
+        extra.style.left = '0'; extra.style.right = '0'; extra.style.height = ROW + 'px';
+        row.style.top = '0';
+        inner.appendChild(extra);
+      } else {
+        inner.appendChild(row);
+      }
+    }
+    port.innerHTML = '';
+    port.appendChild(inner);
+    out.textContent = 'mounted ' + (end - start) + ' of ' + rows.length + '  window=' + start + '-' + (end - 1);
+  }
+  port.addEventListener('scroll', render);
+  document.querySelector('[data-testid="virt-search"]').addEventListener('input', function (e) {
+    query = e.target.value;
+    port.scrollTop = 0;
+    render();
+    Gym.log('virt-filter', query || '(all)');
+  });
+  document.querySelector('[data-testid="virt-ab"]').addEventListener('click', function () {
+    variant = variant === 'a' ? 'b' : 'a';
+    wrap.dataset.variant = variant;
+    render();
+    Gym.log('ab', variant);
+  });
+  document.querySelector('[data-testid="virt-jump"]').addEventListener('click', function () {
+    const rows = filtered();
+    const idx = rows.findIndex(function (r) { return r.ref === 'SHP-9800'; });
+    if (idx >= 0) port.scrollTop = idx * ROW;
+    render();
+    Gym.log('virt-jump', 'SHP-9800 @ ' + idx);
+  });
+  render();
+
+  const box = document.querySelector('[data-testid="state-box"]');
+  function setState(kind) {
+    box.dataset.state = kind;
+    if (kind === 'loading') {
+      box.innerHTML = '<div class="virt-skel" data-testid="virt-row" style="height:36px;margin:6px 0"></div>'.repeat(4);
+    } else if (kind === 'empty') {
+      box.textContent = 'No shipments match.';
+    } else if (kind === 'error') {
+      box.textContent = 'Board unavailable.';
+    } else {
+      box.textContent = 'SHP-4100 Rotterdam — ready';
+    }
+    Gym.log('list-state', kind);
+  }
+  document.querySelector('[data-testid="state-load"]').addEventListener('click', function () { setState('loading'); });
+  document.querySelector('[data-testid="state-empty"]').addEventListener('click', function () { setState('empty'); });
+  document.querySelector('[data-testid="state-error"]').addEventListener('click', function () { setState('error'); });
+  document.querySelector('[data-testid="state-ready"]').addEventListener('click', function () { setState('ready'); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "locator-gym",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Playwright practice gym: hostile DOM, frames, shadow, overlays, virtual lists, network, auth, design-system widgets and a cross-origin payment iframe.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "PWDEBUG=1 playwright test",
+    "test:tour": "playwright test tour --project=chromium",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:4173"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

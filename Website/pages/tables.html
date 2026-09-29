@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic tables — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 02</p>
+    <h1>Dynamic tables</h1>
+    <p class="lede">Virtualised 10k-row boards live in <a href="lists.html">module 10</a>. This room stays on real tables.
+      
+      Five tables that each break a different assumption: rows that renumber when sorted, a page
+      size that changes what <span class="code">nth(3)</span> means, cells that rewrite themselves
+      mid-assertion, a table built from <span class="code">div</span>s, and one with merged cells
+      and a table inside a cell.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Shipments — sort, filter, paginate</h2></div>
+      <p class="hint">
+        Row ids are stable in <span class="code">data-ship</span>; DOM order is not. Sorting rewrites
+        <span class="code">tbody</span> completely, so any handle you grabbed earlier goes stale.
+      </p>
+
+      <div class="card">
+        <div class="inline" style="margin-bottom:14px">
+          <div class="field" style="flex:2;min-width:200px">
+            <label for="tbl-search">Filter</label>
+            <input id="tbl-search" type="search" placeholder="destination, carrier or status…" data-testid="table-search">
+          </div>
+          <div class="field" style="width:150px">
+            <label for="tbl-status">Status</label>
+            <select id="tbl-status" data-testid="table-status-filter">
+              <option value="">All</option>
+              <option>In transit</option>
+              <option>Customs</option>
+              <option>Delivered</option>
+              <option>Delayed</option>
+            </select>
+          </div>
+          <div class="field" style="width:110px">
+            <label for="tbl-size">Per page</label>
+            <select id="tbl-size" data-testid="table-page-size">
+              <option>5</option><option selected>10</option><option>25</option>
+            </select>
+          </div>
+          <button class="btn btn--ghost" id="tbl-add" data-testid="table-add-row">Add shipment</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="data" id="ship-table" data-testid="shipments-table">
+            <thead>
+              <tr>
+                <th style="width:34px"><input type="checkbox" id="ship-all" data-testid="select-all-rows" aria-label="Select all rows on this page"></th>
+                <th data-sort="id" data-testid="th-id">Ref <span class="arrow"></span></th>
+                <th data-sort="dest" data-testid="th-dest">Destination <span class="arrow"></span></th>
+                <th data-sort="carrier">Carrier <span class="arrow"></span></th>
+                <th data-sort="weight" data-testid="th-weight">Weight (kg) <span class="arrow"></span></th>
+                <th data-sort="value" data-testid="th-value">Value <span class="arrow"></span></th>
+                <th data-sort="eta">ETA <span class="arrow"></span></th>
+                <th data-sort="status">Status <span class="arrow"></span></th>
+                <th style="width:120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ship-body"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="mono tiny">Page totals</td>
+                <td class="num" id="foot-weight" data-testid="foot-weight">—</td>
+                <td class="num" id="foot-value" data-testid="foot-value">—</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pager" id="ship-pager" data-testid="table-pager"></div>
+        <div class="out" data-testid="table-out"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Live board <span class="chip chip--trap">rewrites every second</span></h2></div>
+      <p class="hint">
+        Prices and the up/down class change on a 1000&nbsp;ms interval. Snapshot assertions will
+        flake — use <span class="code">expect.poll</span>, or pause the feed first. The pause button
+        is the honest way; find it and use it.
+      </p>
+
+      <div class="card">
+        <div class="btnrow" style="margin:0 0 12px">
+          <button class="btn btn--ghost btn--sm" id="feed-toggle" data-testid="feed-toggle">Pause feed</button>
+          <span class="chip" id="feed-state" data-testid="feed-state">running</span>
+          <span class="chip" id="feed-ticks" data-testid="feed-ticks">tick 0</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="data" data-testid="live-table">
+            <thead><tr><th>Lane</th><th>Rate</th><th>Δ 1m</th><th>Capacity</th><th>Updated</th></tr></thead>
+            <tbody id="live-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Load more &amp; inline edit</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Append-on-demand <span class="chip chip--time">900 ms per batch</span></span>
+          <div class="tbl-wrap" style="max-height:230px;overflow-y:auto">
+            <table class="data" data-testid="lazy-table">
+              <thead><tr><th>#</th><th>Batch code</th><th>Yield</th></tr></thead>
+              <tbody id="lazy-body"></tbody>
+            </table>
+          </div>
+          <div class="btnrow">
+            <button class="btn btn--ghost" id="lazy-more" data-testid="load-more">Load 5 more</button>
+            <span class="chip" id="lazy-count" data-testid="lazy-count">5 rows</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Editable cells <span class="chip chip--trap">td becomes input on click</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Click a quota cell — the text node is replaced by an <span class="code">&lt;input&gt;</span>, then swapped back on blur or Enter.</p>
+          <div class="tbl-wrap">
+            <table class="data" data-testid="edit-table">
+              <thead><tr><th>Team</th><th>Quota</th><th>Owner</th></tr></thead>
+              <tbody id="edit-body">
+                <tr><td>Inbound</td><td class="num editable" data-field="quota">1200</td><td>R. Nayar</td></tr>
+                <tr><td>Outbound</td><td class="num editable" data-field="quota">980</td><td>K. Osei</td></tr>
+                <tr><td>Returns</td><td class="num editable" data-field="quota">340</td><td>M. Halvorsen</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="out" data-testid="edit-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Merged cells and a table inside a table</h2></div>
+      <p class="hint">
+        <span class="code">rowspan</span> and <span class="code">colspan</span> mean cell index ≠ column
+        index. Row 2 contains a whole second table, so <span class="code">table td</span> matches cells
+        from both unless you scope it.
+      </p>
+
+      <div class="card">
+        <div class="tbl-wrap">
+          <table class="data" data-testid="merged-table">
+            <thead>
+              <tr>
+                <th rowspan="2">Region</th>
+                <th colspan="2">Q1</th>
+                <th colspan="2">Q2</th>
+                <th rowspan="2">Notes</th>
+              </tr>
+              <tr><th>Units</th><th>Revenue</th><th>Units</th><th>Revenue</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EMEA</td><td class="num">4,120</td><td class="num">$812,400</td>
+                <td class="num">4,880</td><td class="num">$946,200</td><td>On plan</td>
+              </tr>
+              <tr>
+                <td>APAC</td>
+                <td colspan="5" style="padding:0">
+                  <table class="data" data-testid="inner-table" style="border:0">
+                    <thead><tr><th>Sub-market</th><th>Units</th><th>Revenue</th></tr></thead>
+                    <tbody>
+                      <tr><td>India</td><td class="num">2,310</td><td class="num">$401,900</td></tr>
+                      <tr><td>Japan</td><td class="num">1,905</td><td class="num">$522,700</td></tr>
+                      <tr><td>Australia</td><td class="num">640</td><td class="num">$188,050</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td>AMER</td><td class="num">6,004</td><td class="num">$1,244,110</td>
+                <td class="num">5,712</td><td class="num">$1,190,880</td><td>Watch returns</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Grid built from divs <span class="chip chip--trap">no table tags</span></h2></div>
+      <p class="hint">
+        Same data, zero <span class="code">&lt;table&gt;</span> elements — this is what most component
+        libraries render. Playwright's <span class="code">getByRole('row')</span> still works because
+        the ARIA roles are correct. Columns are also visually reordered by CSS, so DOM order ≠ reading order.
+      </p>
+
+      <div class="card">
+        <div role="grid" aria-label="Warehouse capacity" data-testid="div-grid"
+             style="border:1px solid var(--line);border-radius:3px;overflow:hidden;font-size:13.5px;background:#fff">
+          <div role="row" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;background:#F2F6F9;border-bottom:1px solid var(--line)">
+            <div role="columnheader" style="padding:9px 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft)">Site</div>
+            <div role="columnheader" style="padding:9px 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);order:3">Used</div>
+            <div role="columnheader" style="padding:9px 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);order:2">Capacity</div>
+            <div role="columnheader" style="padding:9px 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);order:4">Status</div>
+          </div>
+          <div id="grid-body"></div>
+        </div>
+        <p class="tiny muted" style="margin:10px 0 0">The <em>Used</em> header sits third in the DOM but renders second-to-last. Sorting by visual position will pick the wrong column.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const $ = function (s, r) { return (r || document).querySelector(s); };
+  const $$ = function (s, r) { return Array.from((r || document).querySelectorAll(s)); };
+
+  /* ---------- data ---------- */
+  const DESTS = ['Rotterdam', 'Jebel Ali', 'Santos', 'Busan', 'Nhava Sheva', 'Valencia', 'Callao',
+                 'Durban', 'Manzanillo', 'Gdansk', 'Haiphong', 'Mombasa'];
+  const CARRIERS = ['Maersk', 'Hapag', 'ONE', 'CMA CGM', 'Evergreen'];
+  const STATES = ['In transit', 'Customs', 'Delivered', 'Delayed'];
+
+  let seed = 20260803;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  function pick(a) { return a[Math.floor(rnd() * a.length)]; }
+
+  let rows = [];
+  for (let i = 0; i < 57; i++) {
+    const d = new Date(2026, 7, 5 + Math.floor(rnd() * 45));
+    rows.push({
+      id: 'SHP-' + (4100 + i),
+      dest: pick(DESTS),
+      carrier: pick(CARRIERS),
+      weight: Math.round(400 + rnd() * 21000),
+      value: Math.round(2000 + rnd() * 180000),
+      eta: Gym.iso(d),
+      status: pick(STATES)
+    });
+  }
+
+  let sortKey = null, sortDir = 1, page = 1, pageSize = 10;
+  const selected = new Set();
+
+  function view() {
+    const q = $('#tbl-search').value.trim().toLowerCase();
+    const st = $('#tbl-status').value;
+    let out = rows.filter(function (r) {
+      const hay = (r.id + ' ' + r.dest + ' ' + r.carrier + ' ' + r.status).toLowerCase();
+      return (!q || hay.includes(q)) && (!st || r.status === st);
+    });
+    if (sortKey) {
+      out = out.slice().sort(function (a, b) {
+        const x = a[sortKey], y = b[sortKey];
+        if (typeof x === 'number') return (x - y) * sortDir;
+        return String(x).localeCompare(String(y)) * sortDir;
+      });
+    }
+    return out;
+  }
+
+  function render() {
+    const data = view();
+    const pages = Math.max(1, Math.ceil(data.length / pageSize));
+    if (page > pages) page = pages;
+    const slice = data.slice((page - 1) * pageSize, page * pageSize);
+
+    $('#ship-body').innerHTML = slice.map(function (r, i) {
+      const cls = r.status === 'Delayed' ? 'down' : (r.status === 'Delivered' ? 'up' : '');
+      return '<tr data-ship="' + r.id + '" data-selected="' + selected.has(r.id) + '" data-testid="ship-row">' +
+        '<td><input type="checkbox" class="row-cb" aria-label="Select ' + r.id + '"' + (selected.has(r.id) ? ' checked' : '') + '></td>' +
+        '<td class="mono">' + r.id + '</td>' +
+        '<td>' + r.dest + '</td>' +
+        '<td>' + r.carrier + '</td>' +
+        '<td class="num">' + r.weight.toLocaleString('en-US') + '</td>' +
+        '<td class="num">$' + r.value.toLocaleString('en-US') + '</td>' +
+        '<td class="mono">' + r.eta + '</td>' +
+        '<td class="' + cls + '">' + r.status + '</td>' +
+        '<td><button class="btn btn--ghost btn--sm act-hold">Hold</button> ' +
+            '<button class="btn btn--sm btn--danger act-del">Delete</button></td>' +
+      '</tr>';
+    }).join('') || '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--ink-soft)" data-testid="empty-state">No shipments match that filter. Clear the search to start over.</td></tr>';
+
+    $('#foot-weight').textContent = slice.reduce(function (s, r) { return s + r.weight; }, 0).toLocaleString('en-US');
+    $('#foot-value').textContent = '$' + slice.reduce(function (s, r) { return s + r.value; }, 0).toLocaleString('en-US');
+
+    let pg = '<button class="pager__no" data-page="prev" data-testid="page-prev">‹</button>';
+    for (let p = 1; p <= pages; p++) {
+      pg += '<button class="pager__no" data-page="' + p + '" data-testid="page-' + p + '"' +
+            (p === page ? ' aria-current="true"' : '') + '>' + p + '</button>';
+    }
+    pg += '<button class="pager__no" data-page="next" data-testid="page-next">›</button>' +
+          '<span class="pager__meta" data-testid="pager-meta">' + data.length + ' rows · page ' + page + ' of ' + pages +
+          ' · ' + selected.size + ' selected</span>';
+    $('#ship-pager').innerHTML = pg;
+
+    $$('#ship-table th[data-sort]').forEach(function (th) {
+      const a = th.querySelector('.arrow');
+      a.textContent = th.dataset.sort === sortKey ? (sortDir === 1 ? '▲' : '▼') : '';
+      th.setAttribute('aria-sort', th.dataset.sort === sortKey ? (sortDir === 1 ? 'ascending' : 'descending') : 'none');
+    });
+
+    const all = $('#ship-all');
+    const onPage = slice.filter(function (r) { return selected.has(r.id); }).length;
+    all.checked = slice.length > 0 && onPage === slice.length;
+    all.indeterminate = onPage > 0 && onPage < slice.length;
+  }
+
+  $('#tbl-search').addEventListener('input', function () { page = 1; render(); });
+  $('#tbl-status').addEventListener('change', function () { page = 1; render(); Gym.log('table', 'status filter'); });
+  $('#tbl-size').addEventListener('change', function (e) { pageSize = +e.target.value; page = 1; render(); Gym.log('table', 'page size → ' + pageSize); });
+
+  $$('#ship-table th[data-sort]').forEach(function (th) {
+    th.addEventListener('click', function () {
+      if (sortKey === th.dataset.sort) sortDir = -sortDir; else { sortKey = th.dataset.sort; sortDir = 1; }
+      render();
+      Gym.log('table', 'sort ' + sortKey + ' ' + (sortDir === 1 ? 'asc' : 'desc'));
+    });
+  });
+
+  $('#ship-pager').addEventListener('click', function (e) {
+    const b = e.target.closest('[data-page]'); if (!b) return;
+    const pages = Math.max(1, Math.ceil(view().length / pageSize));
+    if (b.dataset.page === 'prev') page = Math.max(1, page - 1);
+    else if (b.dataset.page === 'next') page = Math.min(pages, page + 1);
+    else page = +b.dataset.page;
+    render();
+  });
+
+  $('#ship-body').addEventListener('click', function (e) {
+    const tr = e.target.closest('tr'); if (!tr || !tr.dataset.ship) return;
+    const id = tr.dataset.ship;
+    if (e.target.classList.contains('row-cb')) {
+      if (e.target.checked) selected.add(id); else selected.delete(id);
+      render();
+      Gym.out('[data-testid="table-out"]', 'selected: ' + (selected.size ? Array.from(selected).join(', ') : 'none'));
+    } else if (e.target.classList.contains('act-del')) {
+      rows = rows.filter(function (r) { return r.id !== id; });
+      selected.delete(id); render();
+      Gym.log('table', 'deleted ' + id);
+      Gym.out('[data-testid="table-out"]', id + ' deleted — the row node is gone, not hidden.');
+    } else if (e.target.classList.contains('act-hold')) {
+      const r = rows.find(function (x) { return x.id === id; });
+      r.status = r.status === 'Delayed' ? 'In transit' : 'Delayed';
+      render();
+      Gym.out('[data-testid="table-out"]', id + ' → ' + r.status);
+    }
+  });
+
+  $('#ship-all').addEventListener('change', function (e) {
+    const data = view().slice((page - 1) * pageSize, page * pageSize);
+    data.forEach(function (r) { if (e.target.checked) selected.add(r.id); else selected.delete(r.id); });
+    render();
+  });
+
+  $('#tbl-add').addEventListener('click', function () {
+    const d = new Date(); d.setDate(d.getDate() + Math.floor(Math.random() * 30) + 1);
+    const r = {
+      id: 'SHP-' + (9000 + Math.floor(Math.random() * 900)),
+      dest: DESTS[Math.floor(Math.random() * DESTS.length)],
+      carrier: CARRIERS[Math.floor(Math.random() * CARRIERS.length)],
+      weight: Math.round(400 + Math.random() * 21000),
+      value: Math.round(2000 + Math.random() * 180000),
+      eta: Gym.iso(d),
+      status: 'In transit'
+    };
+    rows.unshift(r); page = 1; render();
+    Gym.log('table', 'added ' + r.id);
+    Gym.out('[data-testid="table-out"]', 'added ' + r.id + ' at the top — every other row shifted down one index.');
+  });
+
+  render();
+
+  /* ---------- § 02 live board ---------- */
+  const lanes = [
+    { lane: 'Shanghai → Rotterdam', rate: 2840, cap: 78 },
+    { lane: 'Mundra → Jebel Ali', rate: 940, cap: 64 },
+    { lane: 'Santos → Algeciras', rate: 1725, cap: 91 },
+    { lane: 'Busan → Long Beach', rate: 3110, cap: 55 },
+    { lane: 'Nhava Sheva → Hamburg', rate: 2260, cap: 83 }
+  ];
+  let feedOn = true, ticks = 0, feedTimer;
+
+  function drawLive() {
+    $('#live-body').innerHTML = lanes.map(function (l) {
+      const dir = l.delta >= 0 ? 'up' : 'down';
+      return '<tr data-lane="' + l.lane + '" data-testid="live-row">' +
+        '<td>' + l.lane + '</td>' +
+        '<td class="num" data-testid="live-rate">$' + l.rate.toLocaleString('en-US') + '</td>' +
+        '<td class="num ' + dir + '" data-testid="live-delta">' + (l.delta >= 0 ? '+' : '') + l.delta + '</td>' +
+        '<td class="num">' + l.cap + '%</td>' +
+        '<td class="mono tiny muted">' + new Date().toTimeString().slice(0, 8) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+  function tick() {
+    ticks++;
+    lanes.forEach(function (l) {
+      l.delta = Math.round((Math.random() - 0.5) * 90);
+      l.rate = Math.max(200, l.rate + l.delta);
+      l.cap = Math.min(99, Math.max(20, l.cap + Math.round((Math.random() - 0.5) * 6)));
+    });
+    $('#feed-ticks').textContent = 'tick ' + ticks;
+    drawLive();
+  }
+  lanes.forEach(function (l) { l.delta = 0; });
+  drawLive();
+  feedTimer = setInterval(tick, 1000);
+
+  $('#feed-toggle').addEventListener('click', function () {
+    feedOn = !feedOn;
+    if (feedOn) { feedTimer = setInterval(tick, 1000); } else { clearInterval(feedTimer); }
+    this.textContent = feedOn ? 'Pause feed' : 'Resume feed';
+    $('#feed-state').textContent = feedOn ? 'running' : 'paused';
+    $('#feed-state').className = 'chip ' + (feedOn ? '' : 'chip--ok');
+    Gym.log('table', 'live feed ' + (feedOn ? 'resumed' : 'paused'));
+  });
+
+  /* ---------- § 03 load more ---------- */
+  let lazyN = 0;
+  function addLazy(n) {
+    let html = '';
+    for (let i = 0; i < n; i++) {
+      lazyN++;
+      html += '<tr data-testid="lazy-row"><td class="num">' + lazyN + '</td>' +
+              '<td class="mono">BAT-' + String(1000 + lazyN * 7).slice(0, 4) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase() + '</td>' +
+              '<td class="num">' + (88 + Math.random() * 11).toFixed(1) + '%</td></tr>';
+    }
+    $('#lazy-body').insertAdjacentHTML('beforeend', html);
+    $('#lazy-count').textContent = lazyN + ' rows';
+  }
+  addLazy(5);
+  $('#lazy-more').addEventListener('click', function () {
+    const b = this;
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> Loading';
+    setTimeout(function () {
+      addLazy(5); b.disabled = false; b.textContent = 'Load 5 more';
+      Gym.log('table', 'appended 5 rows (total ' + lazyN + ')');
+    }, 900);
+  });
+
+  /* ---------- § 03 inline edit ---------- */
+  $('#edit-body').addEventListener('click', function (e) {
+    const td = e.target.closest('.editable');
+    if (!td || td.querySelector('input')) return;
+    const old = td.textContent.trim();
+    td.innerHTML = '<input type="text" value="' + old + '" data-testid="cell-editor" style="width:90px;padding:2px 4px">';
+    const inp = td.querySelector('input');
+    inp.focus(); inp.select();
+    function commit() {
+      const v = inp.value.trim() || old;
+      td.textContent = v;
+      Gym.out('[data-testid="edit-out"]', td.closest('tr').cells[0].textContent + ' quota: ' + old + ' → ' + v);
+      Gym.log('table', 'cell edited');
+    }
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); }
+      if (ev.key === 'Escape') { td.textContent = old; }
+    });
+  });
+
+  /* ---------- § 05 div grid ---------- */
+  const SITES = [
+    ['Pune IN-W1', 18400, 24000], ['Lyon FR-W3', 9100, 12000],
+    ['Osaka JP-W2', 15750, 16000], ['Tulsa US-W7', 2200, 20000]
+  ];
+  $('#grid-body').innerHTML = SITES.map(function (s) {
+    const pct = Math.round(s[1] / s[2] * 100);
+    const state = pct > 90 ? 'Near full' : pct < 25 ? 'Idle' : 'Healthy';
+    const cls = pct > 90 ? 'down' : pct < 25 ? 'muted' : 'up';
+    return '<div role="row" data-testid="grid-row" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;border-bottom:1px solid var(--line-soft)">' +
+      '<div role="gridcell" style="padding:8px 12px">' + s[0] + '</div>' +
+      '<div role="gridcell" class="num" style="padding:8px 12px;order:3">' + s[1].toLocaleString('en-US') + '</div>' +
+      '<div role="gridcell" class="num" style="padding:8px 12px;order:2">' + s[2].toLocaleString('en-US') + '</div>' +
+      '<div role="gridcell" class="' + cls + '" style="padding:8px 12px;order:4">' + state + ' · ' + pct + '%</div>' +
+    '</div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

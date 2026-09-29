@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlays &amp; chrome — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 09</p>
+    <h1>Overlays &amp; chrome</h1>
+    <p class="lede">
+      Cookie walls, sticky headers, portal dialogs and toast stacks. The button you want
+      is rarely the only one with that accessible name.
+    </p>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Sticky chrome intercepts the click</h2></div>
+      <div class="sticky-chrome" data-testid="sticky-chrome">
+        <strong>Lane desk</strong>
+        <span class="muted tiny">sticky at the top of the main column</span>
+        <button class="btn btn--sm" data-testid="chrome-save" data-log="chrome save">Save</button>
+      </div>
+      <div class="card under-sticky">
+        <span class="card__label">Two Saves <span class="chip chip--trap">strict mode</span></span>
+        <p class="hint">The header Save and the page Save share the name. Scope to a region.</p>
+        <div class="click-trap-row">
+          <button class="btn" data-testid="page-save" data-log="page save">Save</button>
+        </div>
+        <div class="out" data-testid="save-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Portal dialog</h2></div>
+      <div class="card">
+        <span class="card__label">Dialog rendered on document.body</span>
+        <p class="hint">The dialog Save is a third match for getByRole('button', { name: 'Save' }).</p>
+        <button class="btn" data-testid="open-dialog" data-log="open dialog">Edit invoice</button>
+        <div class="out" data-testid="dialog-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Toast stack</h2></div>
+      <div class="card">
+        <span class="card__label">Three toasts, same role</span>
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn btn--ghost" data-testid="toast-info">Push info</button>
+          <button class="btn btn--ghost" data-testid="toast-ok">Push success</button>
+          <button class="btn btn--ghost" data-testid="toast-err">Push error</button>
+        </div>
+        <div class="out" data-testid="toast-out"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Focus trap &amp; inert page</h2></div>
+      <div class="card">
+        <p class="hint">While the dialog is open the rest of the page is <span class="code">inert</span>. Esc closes it.</p>
+        <button class="btn btn--ghost" data-testid="behind-dialog">Should not receive clicks while open</button>
+        <div class="out" data-testid="inert-out"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast-stack" data-testid="toast-stack" aria-live="polite"></div>
+<div class="cookie-banner" data-testid="cookie-banner" role="dialog" aria-label="Cookie consent" hidden>
+  <p>We drop a single <span class="code">gym.consent</span> flag in localStorage. Accept before the primary actions, or the banner steals the click.</p>
+  <button class="btn" data-testid="cookie-reject">Reject</button>
+  <button class="btn" data-testid="cookie-accept">Accept</button>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const saveOut = document.querySelector('[data-testid="save-out"]');
+  const dialogOut = document.querySelector('[data-testid="dialog-out"]');
+  const inertOut = document.querySelector('[data-testid="inert-out"]');
+  const toastOut = document.querySelector('[data-testid="toast-out"]');
+  const stack = document.querySelector('[data-testid="toast-stack"]');
+  const banner = document.querySelector('[data-testid="cookie-banner"]');
+  const shell = document.querySelector('.shell');
+
+  if (localStorage.getItem('gym.consent') !== '1') banner.removeAttribute('hidden');
+  banner.querySelector('[data-testid="cookie-accept"]').addEventListener('click', function () {
+    localStorage.setItem('gym.consent', '1');
+    banner.setAttribute('hidden', '');
+    Gym.log('consent', 'accepted');
+  });
+  banner.querySelector('[data-testid="cookie-reject"]').addEventListener('click', function () {
+    localStorage.setItem('gym.consent', '0');
+    banner.setAttribute('hidden', '');
+    Gym.log('consent', 'rejected');
+  });
+
+  document.querySelector('[data-testid="chrome-save"]').addEventListener('click', function () {
+    saveOut.textContent = 'saved from chrome';
+  });
+  document.querySelector('[data-testid="page-save"]').addEventListener('click', function () {
+    saveOut.textContent = 'saved from page';
+  });
+  document.querySelector('[data-testid="behind-dialog"]').addEventListener('click', function () {
+    inertOut.textContent = 'clicked through';
+  });
+
+  function pushToast(kind, text) {
+    const n = document.createElement('div');
+    n.className = 'toast-item';
+    n.dataset.kind = kind;
+    n.dataset.testid = 'toast-item';
+    n.setAttribute('role', 'status');
+    n.textContent = text;
+    stack.appendChild(n);
+    toastOut.textContent = 'stack=' + stack.children.length + ' last=' + kind;
+    Gym.log('toast', kind + ' · ' + text);
+    setTimeout(function () { n.remove(); toastOut.textContent = 'stack=' + stack.children.length + ' last=' + kind; }, 3200);
+  }
+  document.querySelector('[data-testid="toast-info"]').addEventListener('click', function () { pushToast('info', 'Lane 4 is holding'); });
+  document.querySelector('[data-testid="toast-ok"]').addEventListener('click', function () { pushToast('ok', 'Manifest published'); });
+  document.querySelector('[data-testid="toast-err"]').addEventListener('click', function () { pushToast('error', 'Gateway 500'); });
+
+  let dialogRoot = null;
+  function closeDialog(result) {
+    if (!dialogRoot) return;
+    dialogRoot.remove();
+    dialogRoot = null;
+    shell.removeAttribute('inert');
+    dialogOut.textContent = 'dialog → ' + result;
+    Gym.log('dialog', result);
+  }
+  function openDialog() {
+    if (dialogRoot) return;
+    shell.setAttribute('inert', '');
+    dialogRoot = document.createElement('div');
+    dialogRoot.className = 'gym-dialog-root';
+    dialogRoot.dataset.testid = 'dialog-root';
+    dialogRoot.innerHTML =
+      '<div class="gym-dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" data-testid="invoice-dialog">' +
+        '<h3 id="dlg-title">Edit invoice</h3>' +
+        '<p class="hint">Focus is trapped. Esc cancels. The Save in here is not the page Save.</p>' +
+        '<div class="field"><label for="dlg-ref">Reference</label>' +
+        '<input id="dlg-ref" data-testid="dialog-ref" value="INV-2201"></div>' +
+        '<div class="btnrow">' +
+          '<button class="btn btn--ghost" data-testid="dialog-cancel">Cancel</button>' +
+          '<button class="btn" data-testid="dialog-save">Save</button>' +
+        '</div></div>';
+    document.body.appendChild(dialogRoot);
+    dialogRoot.querySelector('[data-testid="dialog-ref"]').focus();
+    dialogRoot.querySelector('[data-testid="dialog-save"]').addEventListener('click', function () {
+      closeDialog('saved ' + dialogRoot.querySelector('[data-testid="dialog-ref"]').value);
+    });
+    dialogRoot.querySelector('[data-testid="dialog-cancel"]').addEventListener('click', function () { closeDialog('cancelled'); });
+    dialogRoot.addEventListener('click', function (e) { if (e.target === dialogRoot) closeDialog('dismissed'); });
+    document.addEventListener('keydown', onEsc);
+  }
+  function onEsc(e) {
+    if (e.key === 'Escape' && dialogRoot) {
+      document.removeEventListener('keydown', onEsc);
+      closeDialog('escape');
+    }
+  }
+  document.querySelector('[data-testid="open-dialog"]').addEventListener('click', openDialog);
+})();
+</script>
+</body>
+</html>

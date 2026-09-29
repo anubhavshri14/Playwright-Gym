@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network gym — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+  <main class="main">
+    <p class="eyebrow">Module 11</p>
+    <h1>Network gym</h1>
+    <p class="lede">
+      The page talks to <span class="code">/api/search</span> and a 2-second heartbeat so
+      <span class="code">networkidle</span> never comes. Fulfil, abort or fail the search
+      from the test — register the route before <span class="code">goto</span>.
+    </p>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Search against a real local API</h2></div>
+      <div class="card">
+        <span class="card__label">GET /api/search?q=</span>
+        <div class="inline">
+          <div class="field" style="flex:1">
+            <label for="net-q">Query</label>
+            <input id="net-q" data-testid="net-query" placeholder="Busan, Maersk, SHP-">
+          </div>
+          <button class="btn" data-testid="net-go">Search</button>
+        </div>
+        <p class="tiny muted">Force a mode from the page (or from <span class="code">route.fulfill</span> in the spec):</p>
+        <div class="btnrow">
+          <button class="btn btn--ghost" data-testid="net-mode-ok">mode=ok</button>
+          <button class="btn btn--ghost" data-testid="net-mode-empty">mode=empty</button>
+          <button class="btn btn--ghost" data-testid="net-mode-error">mode=error</button>
+          <button class="btn btn--ghost" data-testid="net-mode-slow">mode=slow</button>
+        </div>
+        <div class="out" data-testid="net-status">idle</div>
+        <ul class="filelist" data-testid="net-results" role="list" aria-label="Search results"></ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Heartbeat kills networkidle</h2></div>
+      <div class="card">
+        <span class="card__label">GET /api/heartbeat every 2s</span>
+        <p class="hint">Wait on a locator or a specific response. Do not use networkidle here.</p>
+        <div class="out" data-testid="net-heart">tick 0</div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  let mode = 'ok';
+  const status = document.querySelector('[data-testid="net-status"]');
+  const list = document.querySelector('[data-testid="net-results"]');
+  const heart = document.querySelector('[data-testid="net-heart"]');
+
+  async function search() {
+    const q = document.querySelector('[data-testid="net-query"]').value;
+    status.textContent = 'loading';
+    list.innerHTML = '';
+    Gym.log('search', q + ' mode=' + mode);
+    try {
+      const res = await fetch('/api/search?q=' + encodeURIComponent(q) + '&mode=' + mode);
+      const body = await res.json();
+      if (!res.ok) {
+        status.textContent = 'error ' + res.status + ' ' + (body.error || '');
+        return;
+      }
+      status.textContent = 'ok count=' + body.count;
+      body.items.forEach(function (row) {
+        const li = document.createElement('li');
+        li.dataset.testid = 'net-row';
+        li.dataset.ref = row.ref;
+        li.textContent = row.ref + ' · ' + row.dest + ' · ' + row.carrier + ' · ' + row.status;
+        list.appendChild(li);
+      });
+    } catch (err) {
+      status.textContent = 'network failed';
+    }
+  }
+
+  document.querySelector('[data-testid="net-go"]').addEventListener('click', search);
+  document.querySelector('[data-testid="net-query"]').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') search();
+  });
+  ['ok','empty','error','slow'].forEach(function (m) {
+    document.querySelector('[data-testid="net-mode-' + m + '"]').addEventListener('click', function () {
+      mode = m;
+      Gym.log('net-mode', m);
+      search();
+    });
+  });
+
+  async function beat() {
+    try {
+      const res = await fetch('/api/heartbeat');
+      const body = await res.json();
+      heart.textContent = 'tick ' + body.tick;
+    } catch (_) {}
+  }
+  beat();
+  setInterval(beat, 2000);
+})();
+</script>
+</body>
+</html>

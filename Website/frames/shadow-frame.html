@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shadow inside a frame</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame" data-root="../">
+  <span class="depth-tag">frame → shadow</span>
+  <p class="tiny muted" style="margin:0 0 10px">
+    Two boundaries between this input and the top-level page.
+  </p>
+  <gym-panel label="Frame panel" code="FRAME-01"></gym-panel>
+  <div class="out" data-testid="frame-shadow-out" style="margin-top:10px"></div>
+
+<script src="../assets/app.js"></script>
+<script src="../assets/components.js"></script>
+<script>
+document.addEventListener('gym-panel-submit', function (e) {
+  document.querySelector('[data-testid="frame-shadow-out"]').textContent =
+    e.detail.code + ' registered "' + e.detail.value + '" inside the frame';
+  Gym.log('shadow', 'frame panel submitted');
+});
+</script>
+</body>
+</html>

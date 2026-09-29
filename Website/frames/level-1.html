@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Depth 1</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="in-frame depth-1" data-root="../">
+  <span class="depth-tag">Depth 1 · shellFrame</span>
+  <h3 style="margin-bottom:6px">Shell</h3>
+  <p class="tiny muted" style="margin:0 0 10px">
+    This document owns <code class="code">iframe#depth-2</code>. There is also a decoy input here with
+    the same test id as the one four levels down — if your locator resolves at this depth, you're
+    filling the wrong field.
+  </p>
+
+  <div class="field" style="max-width:300px">
+    <label for="decoy-1">Reference (decoy)</label>
+    <input id="decoy-1" type="text" data-testid="deep-input" placeholder="wrong depth">
+  </div>
+
+  <p class="frame-note">↓ iframe#depth-2 name="innerFrame"</p>
+  <iframe src="level-2.html" id="depth-2" name="innerFrame" height="410" title="Depth 2"></iframe>
+
+<script src="../assets/app.js"></script>
+</body>
+</html>

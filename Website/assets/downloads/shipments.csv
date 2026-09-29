@@ -1,0 +1,9 @@
+ref,destination,carrier,weight_kg,value_usd,eta,status
+SHP-4100,Rotterdam,Maersk,18400,142900,2026-08-19,In transit
+SHP-4101,Busan,ONE,7320,88400,2026-08-24,Customs
+SHP-4102,Santos,Hapag,15980,201350,2026-08-11,Delivered
+SHP-4103,Nhava Sheva,CMA CGM,4410,39980,2026-09-02,Delayed
+SHP-4104,Valencia,Evergreen,20110,176600,2026-08-30,In transit
+SHP-4105,Jebel Ali,Maersk,9905,64220,2026-09-14,In transit
+SHP-4106,Durban,ONE,12750,112480,2026-08-27,Customs
+SHP-4107,Callao,Hapag,3380,28710,2026-09-08,Delivered

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accordions — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 03</p>
+    <h1>Accordions</h1>
+    <p class="lede">
+      Six disclosure patterns that all look identical and behave nothing alike. One keeps its panel
+      in the DOM, one removes it, one animates for 320&nbsp;ms while reporting itself visible, and one
+      hides a form four containers deep.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Native disclosure</h2></div>
+      <p class="hint">
+        <span class="code">&lt;details&gt;</span> exposes an <span class="code">open</span> attribute
+        and no <span class="code">aria-expanded</span>. Content stays in the DOM but is not visible
+        when closed. Click the <span class="code">&lt;summary&gt;</span>, not the details element.
+      </p>
+
+      <details class="acc-native" data-testid="native-1">
+        <summary>Runbook · incident severities</summary>
+        <div class="acc-native__body tiny">
+          <p><strong>SEV-1</strong> — customer-visible outage. Page the on-call within 5 minutes.</p>
+          <p><strong>SEV-2</strong> — degraded service. Ticket plus a status-page note.</p>
+          <p><strong>SEV-3</strong> — internal only. Handle in business hours.</p>
+        </div>
+      </details>
+
+      <details class="acc-native" open data-testid="native-2">
+        <summary>Escalation path <span class="chip">open by default</span></summary>
+        <div class="acc-native__body tiny">
+          <p>On-call → team lead → engineering manager → incident commander. Skip a level only if the previous one has not acked within 10 minutes.</p>
+        </div>
+      </details>
+
+      <details class="acc-native" data-testid="native-nested-outer">
+        <summary>Nested details <span class="chip chip--trap">3 levels</span></summary>
+        <div class="acc-native__body">
+          <p class="tiny muted">Each level must be opened before the next is reachable.</p>
+          <details class="acc-native" data-testid="native-nested-mid">
+            <summary>Level 2 · regional overrides</summary>
+            <div class="acc-native__body">
+              <details class="acc-native" data-testid="native-nested-inner">
+                <summary>Level 3 · the actual control</summary>
+                <div class="acc-native__body">
+                  <div class="field">
+                    <label for="deep-code">Override code</label>
+                    <input id="deep-code" type="text" data-testid="deep-native-input" placeholder="e.g. OVR-4417">
+                  </div>
+                  <button class="btn btn--sm" data-testid="deep-native-submit">Apply override</button>
+                  <div class="out" data-testid="deep-native-out"></div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </div>
+      </details>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>ARIA disclosure — panel removed vs hidden</h2></div>
+      <p class="hint">
+        Left column keeps panels in the DOM with the <span class="code">hidden</span> attribute.
+        Right column deletes the panel node on close, so <span class="code">toBeHidden()</span> passes
+        on one and <span class="code">toHaveCount(0)</span> is what you need on the other.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Hidden, still in the DOM</span>
+          <div id="acc-hidden"></div>
+          <div class="out" data-testid="hidden-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Destroyed on close <span class="chip chip--trap">node removed</span></span>
+          <div id="acc-destroy"></div>
+          <div class="out" data-testid="destroy-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Animated, exclusive group <span class="chip chip--time">320 ms</span></h2></div>
+      <p class="hint">
+        Only one section can be open. Opening a second one closes the first, and both animate.
+        During the transition the panel is technically in the layout but clipped to zero height —
+        Playwright's actionability check will wait, but a bare <span class="code">textContent</span>
+        read will not.
+      </p>
+
+      <div class="stack" id="acc-exclusive"></div>
+      <div class="out" data-testid="exclusive-out"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Lazy panels <span class="chip chip--time">fetch on first open</span></h2></div>
+      <p class="hint">Content does not exist until the header is clicked, and takes ~1.1&nbsp;s to arrive. Reopening is instant because the result is cached.</p>
+
+      <div class="stack" id="acc-lazy"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Split header text <span class="chip chip--trap">text node fragmentation</span></h2></div>
+      <p class="hint">
+        These headers read as plain sentences on screen but each word is its own
+        <span class="code">&lt;span&gt;</span> with whitespace between. Exact text matching fails;
+        Playwright's normalised <span class="code">getByText</span> handles it.
+      </p>
+
+      <div class="stack" id="acc-split"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 06</span><h2>Accordion inside an accordion inside a frame</h2></div>
+      <p class="hint">
+        Open the outer panel, enter the frame, open the inner accordion, then fill the field.
+        Three context switches for one input.
+      </p>
+
+      <div class="acc">
+        <button class="acc__head" aria-expanded="false" aria-controls="frame-panel" data-testid="frame-acc-head">
+          <span class="acc__caret">▸</span><span>Embedded configuration</span>
+        </button>
+        <div class="acc__panel" id="frame-panel" data-testid="frame-acc-panel">
+          <p class="frame-note">iframe#config-frame → accordion → input</p>
+          <iframe src="../frames/acc-frame.html" id="config-frame" name="configFrame" height="300" title="Embedded configuration"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const $ = function (s, r) { return (r || document).querySelector(s); };
+
+  /* ---- § 01 deep native ---- */
+  $('[data-testid="deep-native-submit"]').addEventListener('click', function () {
+    const v = $('#deep-code').value.trim();
+    Gym.out('[data-testid="deep-native-out"]', v ? 'override "' + v + '" applied' : 'enter a code first');
+    Gym.log('accordion', 'deep native submit');
+  });
+
+  /* ---- § 02 two disclosure flavours ---- */
+  const ITEMS = [
+    { t: 'Retention policy', b: 'Logs are kept 30 days hot, 400 days cold. Deletion requests run nightly at 02:00 UTC.' },
+    { t: 'Rate limits', b: 'Burst of 120 requests, sustained 40 per second per key. Exceeding it returns 429 with a Retry-After header.' },
+    { t: 'Regions', b: 'ap-south-1, eu-central-1 and us-east-2. Data does not cross a region boundary without an explicit replication rule.' }
+  ];
+
+  function buildHidden(host) {
+    host.innerHTML = ITEMS.map(function (it, i) {
+      return '<div class="acc" data-testid="hidden-acc-' + i + '">' +
+        '<button class="acc__head" aria-expanded="false" aria-controls="hp-' + i + '" data-testid="hidden-head-' + i + '">' +
+          '<span class="acc__caret">▸</span><span>' + it.t + '</span></button>' +
+        '<div class="acc__panel is-open" id="hp-' + i + '" hidden data-testid="hidden-panel-' + i + '">' +
+          '<p class="tiny" style="margin:0">' + it.b + '</p></div></div>';
+    }).join('');
+    host.addEventListener('click', function (e) {
+      const h = e.target.closest('.acc__head'); if (!h) return;
+      const p = document.getElementById(h.getAttribute('aria-controls'));
+      const open = p.hasAttribute('hidden');
+      p.toggleAttribute('hidden', !open);
+      h.setAttribute('aria-expanded', String(open));
+      Gym.out('[data-testid="hidden-out"]', 'panels in DOM: ' + host.querySelectorAll('.acc__panel').length + ' · open: ' + host.querySelectorAll('.acc__panel:not([hidden])').length);
+      Gym.log('accordion', 'hidden-style ' + (open ? 'opened' : 'closed'));
+    });
+  }
+
+  function buildDestroy(host) {
+    host.innerHTML = ITEMS.map(function (it, i) {
+      return '<div class="acc" data-slot="' + i + '" data-testid="destroy-acc-' + i + '">' +
+        '<button class="acc__head" aria-expanded="false" data-testid="destroy-head-' + i + '">' +
+          '<span class="acc__caret">▸</span><span>' + it.t + '</span></button></div>';
+    }).join('');
+    host.addEventListener('click', function (e) {
+      const h = e.target.closest('.acc__head'); if (!h) return;
+      const box = h.parentElement, i = +box.dataset.slot;
+      const existing = box.querySelector('.acc__panel');
+      if (existing) {
+        existing.remove();
+        h.setAttribute('aria-expanded', 'false');
+      } else {
+        const d = document.createElement('div');
+        d.className = 'acc__panel is-open';
+        d.dataset.testid = 'destroy-panel-' + i;
+        d.innerHTML = '<p class="tiny" style="margin:0">' + ITEMS[i].b + '</p>';
+        box.appendChild(d);
+        h.setAttribute('aria-expanded', 'true');
+      }
+      Gym.out('[data-testid="destroy-out"]', 'panels in DOM: ' + host.querySelectorAll('.acc__panel').length + ' of 3');
+      Gym.log('accordion', 'destroy-style toggled');
+    });
+  }
+
+  buildHidden($('#acc-hidden'));
+  buildDestroy($('#acc-destroy'));
+
+  /* ---- § 03 exclusive + animated ---- */
+  const EX = [
+    { t: 'Pipeline · build', b: 'Runs on every push. Node 20, pnpm, 6 shards. Median 4m12s.' },
+    { t: 'Pipeline · test', b: 'Playwright against three browsers. Retries: 2 on CI, 0 locally. Traces on first retry.' },
+    { t: 'Pipeline · release', b: 'Manual approval gate, then canary at 5% for 20 minutes before full rollout.' }
+  ];
+  const host = $('#acc-exclusive');
+  host.innerHTML = EX.map(function (it, i) {
+    return '<div class="acc" data-testid="ex-acc-' + i + '">' +
+      '<button class="acc__head" aria-expanded="false" aria-controls="ex-' + i + '" data-testid="ex-head-' + i + '">' +
+        '<span class="acc__caret">▸</span><span>' + it.t + '</span>' +
+        '<span class="chip" style="margin-left:auto">' + (i === 1 ? '3 browsers' : 'stage ' + (i + 1)) + '</span></button>' +
+      '<div class="acc__panel" id="ex-' + i + '" data-testid="ex-panel-' + i + '">' +
+        '<p class="tiny" style="margin:0 0 8px">' + it.b + '</p>' +
+        '<button class="btn btn--ghost btn--sm" data-testid="ex-action-' + i + '">Run stage ' + (i + 1) + '</button>' +
+      '</div></div>';
+  }).join('');
+
+  host.addEventListener('click', function (e) {
+    if (e.target.matches('[data-testid^="ex-action"]')) {
+      Gym.out('[data-testid="exclusive-out"]', e.target.textContent + ' queued at ' + new Date().toLocaleTimeString());
+      return;
+    }
+    const h = e.target.closest('.acc__head'); if (!h) return;
+    const panel = document.getElementById(h.getAttribute('aria-controls'));
+    const wasOpen = h.getAttribute('aria-expanded') === 'true';
+    host.querySelectorAll('.acc__head').forEach(function (x) { x.setAttribute('aria-expanded', 'false'); });
+    host.querySelectorAll('.acc__panel').forEach(function (x) { x.classList.remove('is-open'); });
+    if (!wasOpen) {
+      h.setAttribute('aria-expanded', 'true');
+      panel.classList.add('is-open');
+      Gym.log('accordion', 'exclusive → ' + h.textContent.trim().slice(0, 24));
+    }
+  });
+
+  /* ---- § 04 lazy ---- */
+  const LAZY = [
+    { t: 'Fetch build artifacts', b: 'artifact-4471.tar.gz · 82.4 MB · sha256 9f2c…e10b' },
+    { t: 'Fetch coverage report', b: 'statements 91.4% · branches 84.0% · functions 93.2% · lines 91.1%' }
+  ];
+  const lz = $('#acc-lazy');
+  lz.innerHTML = LAZY.map(function (it, i) {
+    return '<div class="acc" data-testid="lazy-acc-' + i + '" data-loaded="false">' +
+      '<button class="acc__head" aria-expanded="false" data-testid="lazy-head-' + i + '">' +
+        '<span class="acc__caret">▸</span><span>' + it.t + '</span></button>' +
+      '<div class="acc__panel" data-testid="lazy-panel-' + i + '"></div></div>';
+  }).join('');
+
+  lz.addEventListener('click', function (e) {
+    const h = e.target.closest('.acc__head'); if (!h) return;
+    const box = h.parentElement, i = Array.from(lz.children).indexOf(box);
+    const panel = box.querySelector('.acc__panel');
+    const open = h.getAttribute('aria-expanded') === 'true';
+    if (open) { h.setAttribute('aria-expanded', 'false'); panel.classList.remove('is-open'); return; }
+    h.setAttribute('aria-expanded', 'true');
+    panel.classList.add('is-open');
+    if (box.dataset.loaded === 'true') return;
+    panel.innerHTML = '<p class="tiny muted" data-testid="lazy-spinner-' + i + '"><span class="spinner"></span> Retrieving…</p>';
+    setTimeout(function () {
+      panel.innerHTML = '<div class="out" data-testid="lazy-content-' + i + '" style="margin:0">' + LAZY[i].b + '</div>';
+      box.dataset.loaded = 'true';
+      Gym.log('accordion', 'lazy panel ' + i + ' loaded');
+    }, 1100);
+  });
+
+  /* ---- § 05 split text ---- */
+  const SPLIT = [
+    ['Restart', 'the', 'ingest', 'worker'],
+    ['Rotate', 'the', 'signing', 'key']
+  ];
+  const sp = $('#acc-split');
+  sp.innerHTML = SPLIT.map(function (words, i) {
+    return '<div class="acc" data-testid="split-acc-' + i + '">' +
+      '<button class="acc__head" aria-expanded="false" data-testid="split-head-' + i + '">' +
+        '<span class="acc__caret">▸</span><span>' +
+        words.map(function (w) { return '<span>' + w + '</span>'; }).join('\n  ') +
+        '</span></button>' +
+      '<div class="acc__panel" data-testid="split-panel-' + i + '">' +
+        '<p class="tiny" style="margin:0">Runs as a background job. Expect a 30–60 second gap in metrics.</p></div></div>';
+  }).join('');
+  sp.addEventListener('click', function (e) {
+    const h = e.target.closest('.acc__head'); if (!h) return;
+    const p = h.nextElementSibling, open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', String(!open));
+    p.classList.toggle('is-open', !open);
+  });
+
+  /* ---- § 06 frame accordion ---- */
+  $('[data-testid="frame-acc-head"]').addEventListener('click', function () {
+    const p = $('#frame-panel'), open = this.getAttribute('aria-expanded') === 'true';
+    this.setAttribute('aria-expanded', String(!open));
+    p.classList.toggle('is-open', !open);
+    if (!open) Gym.log('frame', 'config frame revealed');
+  });
+})();
+</script>
+</body>
+</html>

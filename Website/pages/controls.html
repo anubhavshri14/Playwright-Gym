@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form controls — Locator Gym</title>
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body data-root="../">
+<div class="shell">
+  <nav class="rail" data-rail aria-label="Modules"></nav>
+
+  <main class="main">
+    <p class="eyebrow">Module 01</p>
+    <h1>Form controls</h1>
+    <p class="lede">
+      Every input type the platform ships, plus the custom widgets teams build when the
+      platform isn't enough. Several controls here refuse to cooperate with
+      <span class="code">fill()</span> — find out which, and why.
+    </p>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 01</span><h2>Text entry</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Standard inputs</span>
+          <div class="field">
+            <label for="ctl-name">Full name</label>
+            <input id="ctl-name" type="text" placeholder="Ada Lovelace" data-testid="input-name" data-log-change="name">
+          </div>
+          <div class="field">
+            <label for="ctl-email">Email</label>
+            <input id="ctl-email" type="email" placeholder="ada@example.dev" data-testid="input-email" data-log-change="email">
+          </div>
+          <div class="field">
+            <label for="ctl-pass">Password</label>
+            <input id="ctl-pass" type="password" data-testid="input-password">
+          </div>
+          <div class="inline">
+            <div class="field" style="flex:1">
+              <label for="ctl-qty">Quantity</label>
+              <input id="ctl-qty" type="number" min="0" max="99" step="3" value="0" data-testid="input-number" data-log-change="quantity">
+            </div>
+            <div class="field" style="flex:1">
+              <label for="ctl-tel">Phone</label>
+              <input id="ctl-tel" type="tel" data-testid="input-tel">
+            </div>
+          </div>
+          <div class="field">
+            <label for="ctl-notes">Notes</label>
+            <textarea id="ctl-notes" data-testid="input-notes" placeholder="Free text…"></textarea>
+          </div>
+          <div class="out" data-testid="text-out"></div>
+          <div class="btnrow">
+            <button class="btn" data-testid="btn-read-text">Read values</button>
+            <button class="btn btn--ghost" data-testid="btn-clear-text">Clear all</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Awkward inputs <span class="chip chip--trap">3 traps</span></span>
+
+          <div class="field">
+            <label for="ctl-keys">Keystroke-only field <span class="chip chip--trap">rejects fill()</span></label>
+            <input id="ctl-keys" type="text" autocomplete="off" data-testid="input-keystroke"
+                   placeholder="Type it, don't paste it">
+            <p class="tiny muted" style="margin:6px 0 0">
+              Reverts any value it didn't receive as a keypress. Use
+              <span class="code">pressSequentially()</span>.
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="ctl-mask">Auto-formatting card number</label>
+            <input id="ctl-mask" type="text" inputmode="numeric" maxlength="19" data-testid="input-masked"
+                   placeholder="4242 4242 4242 4242">
+            <p class="tiny muted" style="margin:6px 0 0">Inserts spaces as you type, so the value never equals what you sent.</p>
+          </div>
+
+          <div class="field">
+            <label for="ctl-trim">Field that trims on blur <span class="chip chip--trap">value shifts</span></label>
+            <input id="ctl-trim" type="text" data-testid="input-trim" value="  padded value  ">
+          </div>
+
+          <div class="field">
+            <span class="field__label">Contenteditable block</span>
+            <div contenteditable="true" role="textbox" aria-label="Rich note" data-testid="contenteditable"
+                 style="border:1px solid var(--line);border-radius:3px;padding:8px;min-height:60px;background:#fff">Edit me — I'm a div, not an input.</div>
+          </div>
+
+          <div class="out" data-testid="awkward-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 02</span><h2>Choices</h2></div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <span class="card__label">Checkboxes</span>
+          <label class="check"><input type="checkbox" data-testid="cb-terms" data-log-change="terms"> Accept terms</label>
+          <label class="check"><input type="checkbox" checked data-testid="cb-newsletter" data-log-change="newsletter"> Newsletter (pre-checked)</label>
+          <label class="check"><input type="checkbox" disabled data-testid="cb-disabled"> Disabled option</label>
+          <label class="check"><input type="checkbox" id="cb-parent" data-testid="cb-parent"> <strong>Select all regions</strong></label>
+          <div style="margin-left:22px">
+            <label class="check"><input type="checkbox" class="cb-child" data-testid="cb-emea"> EMEA</label>
+            <label class="check"><input type="checkbox" class="cb-child" data-testid="cb-apac"> APAC</label>
+            <label class="check"><input type="checkbox" class="cb-child" data-testid="cb-amer"> AMER</label>
+          </div>
+          <p class="tiny muted" style="margin:8px 0 0">The parent goes <em>indeterminate</em> on a partial selection — assert on the property, not the attribute.</p>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Radios &amp; switches</span>
+          <fieldset style="border:1px solid var(--line-soft);border-radius:3px;padding:10px" data-testid="radio-group">
+            <legend class="field__label" style="padding:0 4px">Plan</legend>
+            <label class="check"><input type="radio" name="plan" value="free" data-testid="radio-free"> Free</label>
+            <label class="check"><input type="radio" name="plan" value="team" data-testid="radio-team"> Team</label>
+            <label class="check"><input type="radio" name="plan" value="scale" data-testid="radio-scale"> Scale</label>
+            <label class="check"><input type="radio" name="plan" value="gov" disabled data-testid="radio-gov"> Government (locked)</label>
+          </fieldset>
+
+          <div style="margin-top:14px">
+            <span class="field__label">Toggle switch <span class="chip chip--trap">input is 1&times;1px</span></span>
+            <label class="check" style="gap:10px;cursor:pointer">
+              <input type="checkbox" class="hidden-visually" id="sw-dark" data-testid="switch-input">
+              <span id="sw-track" data-testid="switch-track" role="presentation"
+                    style="width:40px;height:22px;border-radius:11px;background:var(--line);position:relative;transition:background .2s;display:inline-block">
+                <span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s" id="sw-knob"></span>
+              </span>
+              <span>Compact mode</span>
+            </label>
+            <p class="tiny muted" style="margin:8px 0 0">The real checkbox is visually hidden. Click the label, or use <span class="code">check({ force: true })</span>.</p>
+          </div>
+          <div class="out" data-testid="choice-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Selects</span>
+          <div class="field">
+            <label for="sel-country">Country (native)</label>
+            <select id="sel-country" data-testid="select-country" data-log-change="country">
+              <option value="">Choose…</option>
+              <option value="in">India</option>
+              <option value="de">Germany</option>
+              <option value="br">Brazil</option>
+              <option value="jp">Japan</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sel-city">City <span class="chip chip--time">populates async</span></label>
+            <select id="sel-city" data-testid="select-city" disabled>
+              <option value="">Pick a country first</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sel-skills">Skills (multiple)</label>
+            <select id="sel-skills" multiple size="5" data-testid="select-skills">
+              <optgroup label="Languages">
+                <option value="js">JavaScript</option>
+                <option value="ts">TypeScript</option>
+                <option value="py">Python</option>
+              </optgroup>
+              <optgroup label="Tools">
+                <option value="pw">Playwright</option>
+                <option value="ci">CI pipelines</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="out" data-testid="select-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 03</span><h2>Custom widgets</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Div-based dropdown <span class="chip chip--trap">not a &lt;select&gt;</span></span>
+          <p class="tiny muted" style="margin:0 0 10px"><span class="code">selectOption()</span> will throw here. Click the trigger, then click the option.</p>
+          <div class="pos-rel">
+            <button class="btn btn--ghost" id="dd-trigger" data-testid="dropdown-trigger"
+                    aria-haspopup="listbox" aria-expanded="false" style="width:100%;text-align:left">
+              <span id="dd-value">Select a warehouse</span>
+            </button>
+            <ul id="dd-list" role="listbox" data-testid="dropdown-list" hidden
+                style="position:absolute;z-index:30;left:0;right:0;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow)">
+              <li role="option" tabindex="0" data-value="pune">Pune · IN-W1</li>
+              <li role="option" tabindex="0" data-value="lyon">Lyon · FR-W3</li>
+              <li role="option" tabindex="0" data-value="osaka">Osaka · JP-W2</li>
+              <li role="option" tabindex="0" data-value="tulsa" aria-disabled="true">Tulsa · US-W7 (offline)</li>
+            </ul>
+          </div>
+          <div class="out" data-testid="dropdown-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Typeahead <span class="chip chip--time">450 ms debounce</span></span>
+          <div class="field">
+            <label for="ta-input">Search components</label>
+            <input id="ta-input" type="text" autocomplete="off" data-testid="typeahead-input" placeholder="Try “bear”, “val”, “act”">
+          </div>
+          <div id="ta-status" class="tiny muted" role="status" data-testid="typeahead-status">Idle</div>
+          <ul id="ta-results" data-testid="typeahead-results" style="list-style:none;padding:0;margin:8px 0 0;font-size:13px"></ul>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Sliders &amp; colour</span>
+          <div class="field">
+            <label for="rng-budget">Budget: <span class="mono" id="rng-out" data-testid="range-value">50</span></label>
+            <input id="rng-budget" type="range" min="0" max="100" step="5" value="50" data-testid="range-budget">
+          </div>
+          <div class="field">
+            <label for="rng-fine">Fine adjust (step 0.01)</label>
+            <input id="rng-fine" type="range" min="0" max="1" step="0.01" value="0.42" data-testid="range-fine">
+          </div>
+          <div class="inline">
+            <div class="field" style="width:110px">
+              <label for="ctl-color">Accent</label>
+              <input id="ctl-color" type="color" value="#1e6091" data-testid="input-color" data-log-change="accent">
+            </div>
+            <div class="field" style="flex:1">
+              <label for="ctl-file-mini">Avatar</label>
+              <input id="ctl-file-mini" type="file" accept="image/*" data-testid="input-file-inline">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Drag to reorder <span class="chip chip--trap">HTML5 DnD</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Native drag events. <span class="code">dragTo()</span> works; mouse-move emulation may not.</p>
+          <ul id="dnd-list" data-testid="dnd-list" style="list-style:none;padding:0;margin:0">
+            <li draggable="true" data-item="Build" class="mono" style="border:1px solid var(--line);background:#fff;border-radius:3px;padding:8px 10px;margin-bottom:6px;cursor:grab">▤ Build</li>
+            <li draggable="true" data-item="Test" class="mono" style="border:1px solid var(--line);background:#fff;border-radius:3px;padding:8px 10px;margin-bottom:6px;cursor:grab">▤ Test</li>
+            <li draggable="true" data-item="Deploy" class="mono" style="border:1px solid var(--line);background:#fff;border-radius:3px;padding:8px 10px;margin-bottom:6px;cursor:grab">▤ Deploy</li>
+            <li draggable="true" data-item="Monitor" class="mono" style="border:1px solid var(--line);background:#fff;border-radius:3px;padding:8px 10px;cursor:grab">▤ Monitor</li>
+          </ul>
+          <div class="out" data-testid="dnd-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 04</span><h2>Buttons &amp; browser dialogs</h2></div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <span class="card__label">Button behaviours</span>
+          <div class="btnrow">
+            <button class="btn" data-testid="btn-plain" data-log="plain button">Save changes</button>
+            <button class="btn btn--ghost" data-testid="btn-dblclick">Double-click me</button>
+            <button class="btn btn--ghost" data-testid="btn-context">Right-click me</button>
+            <button class="btn btn--ghost" data-testid="btn-hover">Hover me</button>
+            <button class="btn" id="btn-delayed" disabled data-testid="btn-delayed">Enables in 4s…</button>
+            <a class="btn btn--ghost" href="../frames/level-4.html" target="_blank" rel="noopener" data-testid="link-newtab">Open in new tab ↗</a>
+          </div>
+          <div id="hover-panel" hidden data-testid="hover-panel" class="out">Revealed on hover. Disappears when the pointer leaves.</div>
+          <div class="out" data-testid="button-out"></div>
+        </div>
+
+        <div class="card">
+          <span class="card__label">Native dialogs <span class="chip chip--trap">block the page</span></span>
+          <p class="tiny muted" style="margin:0 0 10px">Playwright auto-dismisses these unless you register <span class="code">page.on('dialog', …)</span> first.</p>
+          <div class="btnrow">
+            <button class="btn btn--ghost" data-testid="btn-alert">alert()</button>
+            <button class="btn btn--ghost" data-testid="btn-confirm">confirm()</button>
+            <button class="btn btn--ghost" data-testid="btn-prompt">prompt()</button>
+          </div>
+          <div class="out" data-testid="dialog-out"></div>
+
+          <div style="margin-top:16px">
+            <span class="card__label">Toast <span class="chip chip--time">auto-hides in 2.5s</span></span>
+            <button class="btn btn--ghost btn--sm" data-testid="btn-toast">Show toast</button>
+            <div id="toast" hidden data-testid="toast" class="out" style="border-style:solid;border-color:var(--moss);background:var(--moss-wash);color:var(--moss)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 05</span><h2>Validated form</h2></div>
+      <p class="hint">Submitting with errors renders a summary above the form and moves focus to it. Submitting clean replaces the form with a receipt — the form node is removed from the DOM entirely.</p>
+
+      <div class="card" id="form-card">
+        <div id="form-errors" hidden tabindex="-1" data-testid="form-errors"
+             style="border:1px solid var(--rust);background:var(--rust-wash);color:var(--rust);border-radius:3px;padding:10px 12px;margin-bottom:14px;font-size:13px"></div>
+
+        <form id="reg-form" novalidate data-testid="reg-form">
+          <div class="grid grid--2">
+            <div class="field">
+              <label for="rf-user">Username</label>
+              <input id="rf-user" name="username" type="text" data-testid="rf-username">
+            </div>
+            <div class="field">
+              <label for="rf-mail">Work email</label>
+              <input id="rf-mail" name="email" type="email" data-testid="rf-email">
+            </div>
+            <div class="field">
+              <label for="rf-role">Role</label>
+              <select id="rf-role" name="role" data-testid="rf-role">
+                <option value="">Choose…</option>
+                <option>SDET</option><option>Developer</option><option>Manager</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rf-seats">Seats</label>
+              <input id="rf-seats" name="seats" type="number" min="1" max="500" data-testid="rf-seats">
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" name="agree" data-testid="rf-agree"> I've read the runbook</label>
+          <div class="btnrow">
+            <button class="btn" type="submit" data-testid="rf-submit">Create account</button>
+            <button class="btn btn--ghost" type="reset" data-testid="rf-reset">Reset</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  
+    <section class="section">
+      <div class="section__head"><span class="section__num">§ 99</span><h2>Looks enabled, is not</h2></div>
+      <div class="card">
+        <span class="card__label">aria-disabled vs disabled <span class="chip chip--trap">actionability</span></span>
+        <p class="hint">The control is not the disabled attribute. Playwright still treats aria-disabled as not receivable unless you force it — decide which assertion you want.</p>
+        <button class="btn" data-testid="aria-disabled-btn" aria-disabled="true">Publish lane</button>
+        <div class="out" data-testid="aria-disabled-out"></div>
+      </div>
+    </section>
+</main>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  const $ = function (s, r) { return (r || document).querySelector(s); };
+  const $$ = function (s, r) { return Array.from((r || document).querySelectorAll(s)); };
+
+  /* ---- § 01 text ---- */
+  $('[data-testid="btn-read-text"]').addEventListener('click', function () {
+    Gym.out('[data-testid="text-out"]',
+      'name=' + $('#ctl-name').value + '\nemail=' + $('#ctl-email').value +
+      '\npassword.length=' + $('#ctl-pass').value.length +
+      '\nqty=' + $('#ctl-qty').value + '\ntel=' + $('#ctl-tel').value +
+      '\nnotes=' + $('#ctl-notes').value);
+    Gym.log('form', 'read text values');
+  });
+  $('[data-testid="btn-clear-text"]').addEventListener('click', function () {
+    ['#ctl-name', '#ctl-email', '#ctl-pass', '#ctl-qty', '#ctl-tel', '#ctl-notes'].forEach(function (s) { $(s).value = ''; });
+    Gym.out('[data-testid="text-out"]', '');
+  });
+
+  /* keystroke-only field: rebuilds value from keydown, ignores programmatic sets */
+  (function () {
+    const el = $('#ctl-keys');
+    let buf = '';
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace') { buf = buf.slice(0, -1); }
+      else if (e.key.length === 1) { buf += e.key; }
+      else { return; }
+      setTimeout(function () { el.value = buf; }, 0);
+    });
+    el.addEventListener('input', function () {
+      if (el.value !== buf) { el.value = buf; Gym.log('trap', 'keystroke field rejected a programmatic value'); }
+    });
+    el.addEventListener('paste', function (e) { e.preventDefault(); Gym.log('trap', 'paste blocked'); });
+    el.addEventListener('blur', function () { Gym.out('[data-testid="awkward-out"]', 'keystroke value = "' + el.value + '"'); });
+  })();
+
+  /* masked card number */
+  $('#ctl-mask').addEventListener('input', function (e) {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = digits.replace(/(.{4})/g, '$1 ').trim();
+  });
+
+  /* trims on blur */
+  $('#ctl-trim').addEventListener('blur', function (e) {
+    const before = e.target.value;
+    e.target.value = before.trim();
+    if (before !== e.target.value) Gym.log('trap', 'value trimmed on blur');
+  });
+
+  /* ---- § 02 choices ---- */
+  const parent = $('#cb-parent'), kids = $$('.cb-child');
+  function syncParent() {
+    const n = kids.filter(function (k) { return k.checked; }).length;
+    parent.checked = n === kids.length;
+    parent.indeterminate = n > 0 && n < kids.length;
+    Gym.out('[data-testid="choice-out"]', n + ' of ' + kids.length + ' regions selected · indeterminate=' + parent.indeterminate);
+  }
+  parent.addEventListener('change', function () {
+    kids.forEach(function (k) { k.checked = parent.checked; });
+    parent.indeterminate = false;
+    syncParent();
+  });
+  kids.forEach(function (k) { k.addEventListener('change', syncParent); });
+
+  const sw = $('#sw-dark');
+  sw.addEventListener('change', function () {
+    $('#sw-track').style.background = sw.checked ? 'var(--blue)' : 'var(--line)';
+    $('#sw-knob').style.left = sw.checked ? '20px' : '2px';
+    Gym.log('change', 'compact mode → ' + sw.checked);
+  });
+
+  /* dependent select */
+  const CITIES = {
+    in: ['Pune', 'Bengaluru', 'Kochi'],
+    de: ['Leipzig', 'Bonn'],
+    br: ['Recife', 'Curitiba', 'Belém'],
+    jp: ['Sapporo', 'Fukuoka']
+  };
+  $('#sel-country').addEventListener('change', function (e) {
+    const city = $('#sel-city');
+    city.disabled = true;
+    city.innerHTML = '<option value="">Loading…</option>';
+    setTimeout(function () {
+      const list = CITIES[e.target.value] || [];
+      city.innerHTML = '<option value="">Choose…</option>' +
+        list.map(function (c) { return '<option value="' + c.toLowerCase() + '">' + c + '</option>'; }).join('');
+      city.disabled = list.length === 0;
+      Gym.log('async', 'city list ready (' + list.length + ')');
+    }, 1200);
+  });
+
+  $('#sel-skills').addEventListener('change', function (e) {
+    const picked = Array.from(e.target.selectedOptions).map(function (o) { return o.value; });
+    Gym.out('[data-testid="select-out"]', 'skills = [' + picked.join(', ') + ']');
+  });
+
+  /* ---- § 03 custom dropdown ---- */
+  const trig = $('#dd-trigger'), list = $('#dd-list');
+  trig.addEventListener('click', function () {
+    const open = list.hasAttribute('hidden');
+    list.toggleAttribute('hidden', !open);
+    trig.setAttribute('aria-expanded', String(open));
+  });
+  $$('#dd-list li').forEach(function (li) {
+    li.style.cssText = 'padding:7px 9px;border-radius:2px;cursor:pointer;font-size:13px';
+    li.addEventListener('mouseenter', function () { li.style.background = 'var(--blue-wash)'; });
+    li.addEventListener('mouseleave', function () { li.style.background = 'transparent'; });
+    li.addEventListener('click', function () {
+      if (li.getAttribute('aria-disabled') === 'true') { Gym.log('trap', 'clicked a disabled option — nothing happens'); return; }
+      $('#dd-value').textContent = li.textContent;
+      list.setAttribute('hidden', '');
+      trig.setAttribute('aria-expanded', 'false');
+      Gym.out('[data-testid="dropdown-out"]', 'warehouse = ' + li.dataset.value);
+      Gym.log('select', 'warehouse → ' + li.dataset.value);
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.pos-rel')) { list.setAttribute('hidden', ''); trig.setAttribute('aria-expanded', 'false'); }
+  });
+
+  /* typeahead */
+  const CATALOG = ['Bearing housing', 'Bear-claw clamp', 'Valve seat', 'Valve stem', 'Actuator arm',
+                   'Actuator seal', 'Reactor plate', 'Gasket ring', 'Bearing race'];
+  let taTimer;
+  $('#ta-input').addEventListener('input', function (e) {
+    clearTimeout(taTimer);
+    const q = e.target.value.trim().toLowerCase();
+    const status = $('#ta-status'), out = $('#ta-results');
+    out.innerHTML = '';
+    if (!q) { status.textContent = 'Idle'; return; }
+    status.innerHTML = '<span class="spinner"></span> Searching…';
+    taTimer = setTimeout(function () {
+      const hits = CATALOG.filter(function (c) { return c.toLowerCase().includes(q); });
+      status.textContent = hits.length + ' result' + (hits.length === 1 ? '' : 's');
+      out.innerHTML = hits.map(function (h) {
+        return '<li data-testid="typeahead-option" style="padding:6px 8px;border-bottom:1px solid var(--line-soft);cursor:pointer">' + h + '</li>';
+      }).join('');
+      Gym.log('async', 'typeahead → ' + hits.length + ' hits');
+    }, 450);
+  });
+  $('#ta-results').addEventListener('click', function (e) {
+    const li = e.target.closest('li');
+    if (li) { $('#ta-input').value = li.textContent; $('#ta-results').innerHTML = ''; $('#ta-status').textContent = 'Selected'; }
+  });
+
+  /* sliders */
+  $('#rng-budget').addEventListener('input', function (e) { $('#rng-out').textContent = e.target.value; });
+
+  /* drag & drop reorder */
+  (function () {
+    const ul = $('#dnd-list');
+    let dragged = null;
+    ul.addEventListener('dragstart', function (e) {
+      dragged = e.target; e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', e.target.dataset.item);
+      e.target.style.opacity = '.4';
+    });
+    ul.addEventListener('dragend', function (e) {
+      e.target.style.opacity = '1';
+      Gym.out('[data-testid="dnd-out"]', 'order = ' + $$('#dnd-list li').map(function (l) { return l.dataset.item; }).join(' → '));
+      Gym.log('drag', 'reordered pipeline');
+    });
+    ul.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      const over = e.target.closest('li');
+      if (!over || over === dragged) return;
+      const rect = over.getBoundingClientRect();
+      const after = (e.clientY - rect.top) / rect.height > 0.5;
+      ul.insertBefore(dragged, after ? over.nextSibling : over);
+    });
+    ul.addEventListener('drop', function (e) { e.preventDefault(); });
+  })();
+
+  /* ---- § 04 buttons ---- */
+  $('[data-testid="btn-dblclick"]').addEventListener('dblclick', function () {
+    Gym.out('[data-testid="button-out"]', 'double-click registered'); Gym.log('click', 'dblclick');
+  });
+  $('[data-testid="btn-context"]').addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    Gym.out('[data-testid="button-out"]', 'context menu opened at ' + e.clientX + ',' + e.clientY);
+    Gym.log('click', 'contextmenu');
+  });
+  const hoverBtn = $('[data-testid="btn-hover"]'), hoverPanel = $('#hover-panel');
+  hoverBtn.addEventListener('mouseenter', function () { hoverPanel.hidden = false; });
+  hoverBtn.addEventListener('mouseleave', function () { hoverPanel.hidden = true; });
+
+  setTimeout(function () {
+    const b = $('#btn-delayed');
+    b.disabled = false; b.textContent = 'Now enabled';
+    Gym.log('timing', 'delayed button enabled after 4s');
+  }, 4000);
+  $('#btn-delayed').addEventListener('click', function () { Gym.out('[data-testid="button-out"]', 'delayed button clicked'); });
+
+  $('[data-testid="btn-alert"]').addEventListener('click', function () {
+    window.alert('Deployment locked by release manager.');
+    Gym.out('[data-testid="dialog-out"]', 'alert dismissed');
+  });
+  $('[data-testid="btn-confirm"]').addEventListener('click', function () {
+    const ok = window.confirm('Roll back to build 1183?');
+    Gym.out('[data-testid="dialog-out"]', 'confirm → ' + ok);
+  });
+  $('[data-testid="btn-prompt"]').addEventListener('click', function () {
+    const v = window.prompt('Reason for override?', '');
+    Gym.out('[data-testid="dialog-out"]', 'prompt → ' + (v === null ? '(cancelled)' : v));
+  });
+
+  $('[data-testid="btn-toast"]').addEventListener('click', function () {
+    const t = $('#toast');
+    t.hidden = false; t.textContent = 'Settings saved at ' + new Date().toLocaleTimeString();
+    setTimeout(function () { t.hidden = true; }, 2500);
+  });
+
+  /* ---- § 05 form ---- */
+  $('#reg-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const f = e.target, errs = [];
+    if (!f.username.value.trim()) errs.push('Username is required.');
+    else if (f.username.value.trim().length < 4) errs.push('Username needs at least 4 characters.');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.value)) errs.push('Enter a valid work email.');
+    if (!f.role.value) errs.push('Pick a role.');
+    if (!f.seats.value || +f.seats.value < 1) errs.push('Seats must be 1 or more.');
+    if (!f.agree.checked) errs.push('Confirm you have read the runbook.');
+
+    const box = $('#form-errors');
+    if (errs.length) {
+      box.hidden = false;
+      box.innerHTML = '<strong>' + errs.length + ' problem' + (errs.length > 1 ? 's' : '') + ' to fix</strong><ul style="margin:6px 0 0;padding-left:18px">' +
+        errs.map(function (x) { return '<li data-testid="form-error">' + x + '</li>'; }).join('') + '</ul>';
+      box.focus();
+      Gym.log('form', 'rejected with ' + errs.length + ' errors');
+      return;
+    }
+    Gym.log('form', 'accepted — form node removed');
+    $('#form-card').innerHTML =
+      '<div data-testid="form-receipt" style="border:1px solid var(--moss);background:var(--moss-wash);color:var(--moss);border-radius:3px;padding:14px">' +
+      '<strong>Account created</strong><div class="mono tiny" style="margin-top:6px">ref ' + Gym.rid('ACC').toUpperCase() +
+      ' · ' + f.username.value + ' · ' + f.role.value + ' · ' + f.seats.value + ' seats</div></div>';
+  });
+})();
+</script>
+<script>
+(function () {
+  const b = document.querySelector('[data-testid="aria-disabled-btn"]');
+  if (!b) return;
+  b.addEventListener('click', function (e) {
+    if (b.getAttribute('aria-disabled') === 'true') {
+      e.preventDefault();
+      document.querySelector('[data-testid="aria-disabled-out"]').textContent = 'blocked by aria-disabled';
+      return;
+    }
+    document.querySelector('[data-testid="aria-disabled-out"]').textContent = 'published';
+  });
+})();
+</script>
+</body>
+</html>
