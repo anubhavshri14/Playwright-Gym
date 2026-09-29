@@ -13,7 +13,7 @@ No CDN, no webfonts, no third-party network.
 ## Run it
 
 ```bash
-cd playwright-gym
+cd playwright-gym/Website
 node server.js
 # → http://localhost:4173          app
 # → http://127.0.0.1:4174          payment widget origin
